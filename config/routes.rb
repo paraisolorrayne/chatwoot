@@ -81,6 +81,16 @@ Rails.application.routes.draw do
             get 'agent_metrics/live', to: 'agent_metrics#live'
             get 'agent_metrics/:agent_slug', to: 'agent_metrics#show'
             get 'agent_metrics/:agent_slug/usage', to: 'agent_metrics#usage'
+            # CUSTOMIZACAO_FYKOS: painel Angela (Tier 1) — proxy read-only pro attra-py (ADR-001).
+            namespace :angela do
+              get 'dashboard/patrimonio', to: 'dashboard#patrimonio'
+              get 'dashboard/ciclo', to: 'dashboard#ciclo'
+              get 'dashboard/resultados', to: 'dashboard#resultados'
+              get 'dashboard/operacional', to: 'dashboard#operacional'
+              get 'dashboard/memoria', to: 'dashboard#memoria'
+              get 'dashboard/forecast', to: 'dashboard#forecast'
+              get 'dashboard/grafo', to: 'dashboard#grafo'
+            end
           end
           namespace :captain do
             resource :preferences, only: [:show, :update]
