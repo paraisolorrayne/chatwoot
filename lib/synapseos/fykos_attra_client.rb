@@ -46,7 +46,7 @@ class Synapseos::FykosAttraClient
   #          | 'forecast' | 'grafo'
   # params: query string (ex.: operacional => {desde:, ate:})
   def dashboard(section, params: {})
-    get("/admin/angela/dashboard/#{section}", params)
+    get("/admin-api/angela/dashboard/#{section}", params)
   end
 
   private
