@@ -1,0 +1,64 @@
+# DESTINO: .github/workflows/namespace-gate.yml  no fork  paraisolorrayne/chatwoot
+# Gate de isolamento de namespace (ADR-003 §hardening #3).
+# Lista arquivos OSS tocados num PR (fora dos namespaces custom + allowlist de seams).
+# ADVISORY por padrão; vira BLOQUEANTE setando a variável de repo
+# FYKOS_NAMESPACE_GATE_STRICT=true. Assim não trava o fluxo atual sem aviso.
+name: namespace-gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verificar toque em arquivos OSS fora da allowlist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STRICT: ${{ vars.FYKOS_NAMESPACE_GATE_STRICT }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          changed=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+
+          # Custom permitido livremente: namespaces fykos/ e synapseos/ (legado em migração)
+          custom_re='(fykos|synapseos)'
+          # Allowlist de SEAMS OSS (toque controlado — ADR-003): canal-provider + tema + branding
+          allow_re='^(app/models/channel/whatsapp\.rb|app/services/whatsapp/send_on_whatsapp_service\.rb|config/routes\.rb|app/javascript/dashboard/assets/scss/.*|\.github/.*|config/locales/.*|public/.*|integrations/n8n/.*|services/dexi-gateway/.*|deploy/.*|docker/.*|Gemfile.*|AGENTS.md|CLAUDE.md)$'
+
+          violations=""
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            echo "$f" | grep -qiE "$custom_re" && continue
+            echo "$f" | grep -qE "$allow_re" && continue
+            violations="${violations}${f}"$'\n'
+          done <<< "$changed"
+
+          if [ -z "$violations" ]; then
+            echo "✅ Nenhum arquivo OSS fora da allowlist foi tocado."
+            exit 0
+          fi
+
+          {
+            echo "### ⚠️ Namespace gate — arquivos OSS tocados fora da allowlist"
+            echo "Mover para \`fykos/\` ou justificar como novo seam (ADR-003):"
+            echo '```'
+            echo "$violations"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${STRICT:-false}" = "true" ]; then
+            echo "STRICT=true → bloqueando."
+            exit 1
+          fi
+          echo "STRICT!=true → advisory (não bloqueia). Defina vars.FYKOS_NAMESPACE_GATE_STRICT=true para travar."
