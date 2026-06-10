@@ -1,0 +1,87 @@
+# DESTINO: .github/workflows/upstream-watch.yml  no fork  paraisolorrayne/chatwoot
+# Vigia releases do upstream chatwoot/chatwoot a cada ~15 dias e abre issues
+# (que um GitHub Project auto-adiciona por label). Durável, sem sessão, IaC.
+name: upstream-watch
+
+on:
+  schedule:
+    # Dias 1 e 15, 12:23 UTC (~09:23 BRT). Off-minute de propósito.
+    - cron: "23 12 1,15 * *"
+  workflow_dispatch: {} # permite rodar sob demanda
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detectar releases novos do upstream e abrir issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM: chatwoot/chatwoot
+          THIS_REPO: ${{ github.repository }}
+          WINDOW_DAYS: "20" # cobre o intervalo de 15d + folga
+        shell: bash
+        run: |
+          set -euo pipefail
+          cutoff=$(date -u -d "-${WINDOW_DAYS} days" +%Y-%m-%dT%H:%M:%SZ)
+          echo "Cutoff: $cutoff  | upstream: $UPSTREAM"
+
+          # Releases do upstream publicados na janela
+          gh api "repos/${UPSTREAM}/releases?per_page=30" \
+            --jq ".[] | select(.published_at > \"$cutoff\") | {tag: .tag_name, url: .html_url, body: .body, date: .published_at}" \
+            > /tmp/rel.ndjson || true
+
+          if [ ! -s /tmp/rel.ndjson ]; then
+            echo "Nenhum release novo na janela. Saindo."
+            exit 0
+          fi
+
+          # Uma issue idempotente por tag (título único). Label de segurança se o corpo mencionar CVE.
+          jq -c '.' /tmp/rel.ndjson | while read -r row; do
+            tag=$(echo "$row" | jq -r '.tag')
+            url=$(echo "$row" | jq -r '.url')
+            body=$(echo "$row" | jq -r '.body // ""')
+            title="Upstream sync: ${tag}"
+
+            # Já existe? (idempotência por título)
+            existing=$(gh issue list -R "$THIS_REPO" --state all --search "in:title \"$title\"" --json number --jq 'length')
+            if [ "$existing" != "0" ]; then
+              echo "Issue já existe para $tag — pulando."
+              continue
+            fi
+
+            labels="upstream-sync"
+            if echo "$body" | grep -qiE 'cve-[0-9]|security|vulnerab|xss|sqli|rce|csrf'; then
+              labels="upstream-sync,security"
+              sev="🔴 contém sinalização de SEGURANÇA — priorizar"
+            else
+              sev="🟢 sem sinal de segurança no corpo do release"
+            fi
+
+            # Garante que os labels existem (ignora erro se já existirem)
+            gh label create upstream-sync -R "$THIS_REPO" -c "#0E8A16" -d "Drift do upstream Chatwoot" 2>/dev/null || true
+            gh label create security      -R "$THIS_REPO" -c "#B60205" -d "Correção de segurança/CVE" 2>/dev/null || true
+
+            issue_body=$(cat <<EOF
+Novo release do upstream **${UPSTREAM}**: \`${tag}\`
+
+- Release notes: ${url}
+- Severidade (heurística): ${sev}
+
+### Ação (governança de fork — ADR-003)
+- [ ] Revisar o diff do release contra o Fykos
+- [ ] Priorizar correções de segurança/CVE
+- [ ] Mergear o release na cadência (manter o hábito 4.x → 4.x)
+- [ ] Rodar o gate de CI de isolamento de namespace
+- [ ] Verificar que nenhum seam OSS (canal-provider / tema) quebrou
+
+> Aberto automaticamente pelo workflow \`upstream-watch\`. O GitHub Project
+> auto-adiciona issues com a label \`upstream-sync\`.
+EOF
+)
+            gh issue create -R "$THIS_REPO" --title "$title" --body "$issue_body" --label "$labels"
+            echo "Issue criada para $tag (labels: $labels)"
+          done
