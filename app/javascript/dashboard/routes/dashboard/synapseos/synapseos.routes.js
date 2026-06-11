@@ -3,6 +3,7 @@ import LiveAgentsPage from './pages/LiveAgentsPage.vue';
 import DashboardPage from './pages/DashboardPage.vue';
 import PipelinePage from './pages/PipelinePage.vue';
 import DesignSystemPage from './pages/DesignSystemPage.vue';
+import AngelaDashboardPage from './pages/AngelaDashboardPage.vue';
 
 // CUSTOMIZAÇÃO_SYNAPSEOS: Live Dashboard (6 AI bots + conversas quentes — consome S5).
 const LiveDashboard = () => import('./LiveDashboard.vue');
@@ -10,6 +11,12 @@ const LiveDashboard = () => import('./LiveDashboard.vue');
 const AgentMetrics = () => import('./pages/AgentMetrics.vue');
 
 export const routes = [
+  {
+    path: frontendURL('accounts/:accountId/synapseos/angela'),
+    name: 'synapseos_angela_dashboard',
+    component: AngelaDashboardPage,
+    meta: { permissions: ['administrator', 'synapseos_dashboard_viewer'] },
+  },
   {
     path: frontendURL('accounts/:accountId/synapseos/dashboard'),
     name: 'synapseos_dashboard',
