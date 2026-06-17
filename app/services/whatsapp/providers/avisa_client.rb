@@ -113,15 +113,10 @@ class Whatsapp::Providers::AvisaClient
   def extract_base64(response)
     return nil unless response.is_a?(Hash)
 
-    [response, response['data']].each do |obj|
-      next unless obj.is_a?(Hash)
-
-      %w[Data data file].each do |k|
-        val = obj[k]
-        return val if val.is_a?(String) && val.present?
-      end
-    end
-    nil
+    [response, response['data']]
+      .select { |obj| obj.is_a?(Hash) }
+      .flat_map { |obj| obj.values_at('Data', 'data', 'file') }
+      .find { |val| val.is_a?(String) && val.present? }
   end
 
   def post(path, body)
