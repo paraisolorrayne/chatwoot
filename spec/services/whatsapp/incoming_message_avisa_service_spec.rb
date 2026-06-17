@@ -75,12 +75,10 @@ RSpec.describe Whatsapp::IncomingMessageAvisaService do
   # 162). Agora baixamos o áudio decriptado e anexamos -> balão de incoming
   # real com player. Criado pelo model (bypassa a validação "Api inboxes").
   describe '#perform with inbound audio' do
-    let(:channel) do
-      create(:channel_whatsapp, account: account, provider: 'avisa',
-                                provider_config: { 'api_key' => 'k', 'base_url' => 'https://avisa.test' },
-                                validate_provider_config: false, sync_templates: false)
-    end
-    let(:inbox) { channel.inbox }
+    # Inbox simples + stub do avisa_client (único uso da provider no caminho de
+    # áudio). Evita a factory de channel_whatsapp com provider 'avisa', que não
+    # passa nas validações de provider_config no ambiente de teste.
+    let(:inbox) { create(:inbox, account: account) }
     let(:audio_event) do
       {
         'Info' => { 'ID' => 'AUDIOMSG1', 'Chat' => '5534999887766@s.whatsapp.net', 'PushName' => 'Cliente' },
@@ -94,9 +92,13 @@ RSpec.describe Whatsapp::IncomingMessageAvisaService do
 
     subject(:service) { described_class.new(inbox: inbox, params: { jsonData: { 'event' => audio_event }.to_json }) }
 
+    def stub_download(return_value)
+      client = instance_double(Whatsapp::Providers::AvisaClient, download_audio: return_value)
+      allow(service).to receive(:avisa_client).and_return(client)
+    end
+
     it 'baixa o áudio decriptado e cria incoming com anexo de áudio (player)' do
-      allow_any_instance_of(Whatsapp::Providers::AvisaClient)
-        .to receive(:download_audio).and_return('FAKE_OGG_BYTES')
+      stub_download('FAKE_OGG_BYTES')
 
       service.perform
 
@@ -108,8 +110,7 @@ RSpec.describe Whatsapp::IncomingMessageAvisaService do
     end
 
     it 'não cria mensagem quando o download do áudio falha (sem texto, sem arquivo)' do
-      allow_any_instance_of(Whatsapp::Providers::AvisaClient)
-        .to receive(:download_audio).and_return(nil)
+      stub_download(nil)
 
       service.perform
 
