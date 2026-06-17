@@ -68,4 +68,52 @@ RSpec.describe Whatsapp::IncomingMessageAvisaService do
       end
     end
   end
+
+  # CUSTOMIZAÇÃO_SYNAPSEOS: o webhook do Avisa NÃO anexa o arquivo de áudio
+  # (.enc). Antes, áudio inbound era dropado (texto blank + file blank) e a
+  # conversa ficava só com as respostas da Elisa ("respondendo sozinha", conv
+  # 162). Agora baixamos o áudio decriptado e anexamos -> balão de incoming
+  # real com player. Criado pelo model (bypassa a validação "Api inboxes").
+  describe '#perform with inbound audio' do
+    let(:channel) do
+      create(:channel_whatsapp, account: account, provider: 'avisa',
+                                provider_config: { 'api_key' => 'k', 'base_url' => 'https://avisa.test' },
+                                validate_provider_config: false, sync_templates: false)
+    end
+    let(:inbox) { channel.inbox }
+    let(:audio_event) do
+      {
+        'Info' => { 'ID' => 'AUDIOMSG1', 'Chat' => '5534999887766@s.whatsapp.net', 'PushName' => 'Cliente' },
+        'Message' => { 'audioMessage' => {
+          'URL' => 'https://wa/audio.enc', 'directPath' => '/v/t', 'mediaKey' => 'mk',
+          'mimetype' => 'audio/ogg; codecs=opus', 'fileEncSHA256' => 'e',
+          'fileSHA256' => 's', 'fileLength' => 2048
+        } }
+      }
+    end
+
+    subject(:service) { described_class.new(inbox: inbox, params: { jsonData: { 'event' => audio_event }.to_json }) }
+
+    it 'baixa o áudio decriptado e cria incoming com anexo de áudio (player)' do
+      allow_any_instance_of(Whatsapp::Providers::AvisaClient)
+        .to receive(:download_audio).and_return('FAKE_OGG_BYTES')
+
+      service.perform
+
+      msg = Message.find_by(source_id: 'AUDIOMSG1', inbox_id: inbox.id)
+      expect(msg).to be_present
+      expect(msg.message_type).to eq('incoming')
+      expect(msg.attachments.count).to eq(1)
+      expect(msg.attachments.first.file_type).to eq('audio')
+    end
+
+    it 'não cria mensagem quando o download do áudio falha (sem texto, sem arquivo)' do
+      allow_any_instance_of(Whatsapp::Providers::AvisaClient)
+        .to receive(:download_audio).and_return(nil)
+
+      service.perform
+
+      expect(Message.find_by(source_id: 'AUDIOMSG1', inbox_id: inbox.id)).to be_nil
+    end
+  end
 end
