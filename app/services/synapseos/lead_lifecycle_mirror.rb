@@ -21,7 +21,9 @@ module Synapseos
       'quer' => 'lead:quer',
       'quer_depois' => 'lead:futuro',
       'nao_quer' => 'lead:encerrado',
-      'sem_resposta' => 'lead:sem-resposta'
+      'sem_resposta' => 'lead:sem-resposta',
+      'pos_venda' => 'lead:pos-venda',
+      'outros' => 'lead:outros'
     }.freeze
 
     ALL_ESTADO_LABELS = ESTADO_LABELS.values.freeze

@@ -20,7 +20,7 @@ module Synapseos
     class InvalidSignal < StandardError; end
     class MotivoRequired < StandardError; end
 
-    SIGNALS = %i[quer quer_depois nao_quer sem_resposta_toque sem_resposta_esgotou].freeze
+    SIGNALS = %i[quer quer_depois nao_quer sem_resposta_toque sem_resposta_esgotou pos_venda outros].freeze
 
     # SLA padrão até escalar o estado "quer" se o consultor não pegar.
     # Configurável via ENV pra calibrar sem deploy.
@@ -50,6 +50,8 @@ module Synapseos
     STAGE_QUER = 'aguardando_atendimento_humano'.freeze
     STAGE_FUTURO = 'futuro'.freeze
     STAGE_ENCERRADO = 'encerrado'.freeze
+    STAGE_POS_VENDA = 'pos_venda'.freeze
+    STAGE_OUTROS = 'outros'.freeze
 
     BUSINESS_FIELDS = %i[modelo_interesse tem_troca forma_pagamento urgencia horizonte_compra].freeze
 
@@ -93,6 +95,8 @@ module Synapseos
       when :nao_quer then apply_nao_quer
       when :sem_resposta_toque then apply_sem_resposta_toque
       when :sem_resposta_esgotou then apply_sem_resposta_esgotou
+      when :pos_venda then apply_atendimento_humano('pos_venda', STAGE_POS_VENDA)
+      when :outros then apply_atendimento_humano('outros', STAGE_OUTROS)
       end
     end
 
@@ -145,6 +149,19 @@ module Synapseos
       @lead.retomada_at = now + ESGOTOU_OFFSET
       @lead.motivo = nil
       @lead.next_action_at = @lead.retomada_at
+    end
+
+    # pos_venda / outros: cliente precisa de uma PESSOA mas NÃO é venda. O
+    # roteamento pro humano continua sendo feito pelo webhook do n8n; aqui só
+    # registramos o estado + SLA (não-terminal, precisa de atendimento). Stage é
+    # best-effort (slug pode não existir na account).
+    def apply_atendimento_humano(estado, stage_slug)
+      @lead.estado = estado
+      move_to_stage(stage_slug)
+      @lead.status = :open
+      @lead.retomada_at = nil
+      @lead.motivo = nil
+      @lead.next_action_at = now + QUER_SLA
     end
 
     # toque 1 -> CADENCE_OFFSETS[0], etc. Estoura -> usa o último (21d).

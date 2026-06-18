@@ -106,6 +106,48 @@ RSpec.describe Synapseos::LeadLifecycle do
       end
     end
 
+    context 'with :pos_venda' do
+      it 'sets pos_venda state with SLA, non-terminal (roteamento humano fica no n8n)' do
+        freeze_time do
+          described_class.transition(lead: lead, signal: :pos_venda, modelo_interesse: 'A3')
+          lead.reload
+          expect(lead.estado).to eq('pos_venda')
+          expect(lead.status).to eq('open')
+          expect(lead.next_action_at).to eq(Time.current + described_class::QUER_SLA)
+          expect(lead.terminal?).to be(false)
+        end
+      end
+
+      it 'does not fail when the pos_venda stage slug is absent (best-effort)' do
+        expect do
+          described_class.transition(lead: lead, signal: :pos_venda)
+        end.not_to raise_error
+        expect(lead.reload.estado).to eq('pos_venda')
+      end
+
+      it 'mirrors a lead:pos-venda label' do
+        described_class.transition(lead: lead, signal: :pos_venda)
+        expect(lead.conversation.reload.label_list).to include('lead:pos-venda')
+      end
+    end
+
+    context 'with :outros' do
+      it 'sets outros state with SLA, non-terminal' do
+        freeze_time do
+          described_class.transition(lead: lead, signal: :outros)
+          lead.reload
+          expect(lead.estado).to eq('outros')
+          expect(lead.next_action_at).to eq(Time.current + described_class::QUER_SLA)
+          expect(lead.terminal?).to be(false)
+        end
+      end
+
+      it 'mirrors a lead:outros label' do
+        described_class.transition(lead: lead, signal: :outros)
+        expect(lead.conversation.reload.label_list).to include('lead:outros')
+      end
+    end
+
     context 'idempotency' do
       it 'does not create a duplicate CrmEvent when called twice with the same signal' do
         described_class.transition(lead: lead, signal: :quer)

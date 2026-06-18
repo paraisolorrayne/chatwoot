@@ -63,7 +63,11 @@ module Synapseos
     # ADR-003: estado de 1ª classe da máquina de ciclo de vida. String (não
     # enum integer) por compat com leads legados (estado nil) e legibilidade no
     # banco. `nao_quer` é o único estado terminal.
-    ESTADOS = %w[quer quer_depois nao_quer sem_resposta].freeze
+    # ADR-003 (estendido): além dos 4 estados do funil comercial, pos_venda e
+    # outros — cliente que precisa de uma PESSOA mas NÃO é venda (roteado pro
+    # humano via webhook do n8n). Não-terminais: precisam de atendimento, então
+    # têm SLA (next_action_at) como o 'quer'.
+    ESTADOS = %w[quer quer_depois nao_quer sem_resposta pos_venda outros].freeze
     TERMINAL_ESTADOS = %w[nao_quer].freeze
 
     validates :status, presence: true
