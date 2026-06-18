@@ -33,19 +33,34 @@ module Synapseos
     private
 
     # I2: lead num estado não-terminal cujo próximo passo está ausente ou já
-    # venceu. Repara reentrando em Futuro + 90d (nunca terminal por silêncio).
+    # venceu. Só o caso INEQUÍVOCO do ADR (silêncio com cadência esgotada) é
+    # reparado automaticamente pra Futuro + 90d. Um lead 'quer' (SLA do consultor
+    # estourou) ou 'quer_depois' (retomada venceu sem re-toque) NÃO é rebaixado
+    # pra nutrição silenciosamente — é caso de escalação/decisão, então vira
+    # violação LOGADA pra revisão (a métrica fica visível, sem esfriar um lead
+    # quente).
     def repair_missing_next_action
       count = 0
+      flagged = 0
       candidates.find_each do |lead|
         next if lead.estado.blank? # legado, fora da máquina
         next if lead.terminal?
         next unless next_action_violated?(lead)
 
-        ::Synapseos::LeadLifecycle.transition(lead: lead, signal: :sem_resposta_esgotou)
-        count += 1
+        if lead.estado == 'sem_resposta'
+          ::Synapseos::LeadLifecycle.transition(lead: lead, signal: :sem_resposta_esgotou)
+          count += 1
+        else
+          flagged += 1
+          Rails.logger.warn(
+            "[Synapseos::LeadReconciliationJob] lead=#{lead.id} estado=#{lead.estado} " \
+            "next_action_at=#{lead.next_action_at.inspect} vencido — sem repair automático (revisar/escalar)"
+          )
+        end
       rescue StandardError => e
         Rails.logger.error("[Synapseos::LeadReconciliationJob] failed to repair lead=#{lead.id}: #{e.class}: #{e.message}")
       end
+      Rails.logger.info("[Synapseos::LeadReconciliationJob] next_action flagged_for_review=#{flagged}") if flagged.positive?
       count
     end
 

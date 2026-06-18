@@ -59,6 +59,17 @@ RSpec.describe Synapseos::LeadReconciliationJob, type: :job do
       expect(lead.next_action_at).to be_within(1.second).of(original)
     end
 
+    it 'does NOT downgrade a quer lead past its SLA into Futuro (escalação, não nutrição)' do
+      lead = build_lead(estado: 'quer', next_action_at: 3.hours.ago)
+      allow(Rails.logger).to receive(:warn)
+
+      described_class.new.perform
+
+      lead.reload
+      expect(lead.estado).to eq('quer') # não rebaixado pra quer_depois
+      expect(Rails.logger).to have_received(:warn).with(/sem repair automático/)
+    end
+
     it 'ignores legacy leads with nil estado' do
       lead = build_lead(estado: nil, next_action_at: nil)
 
