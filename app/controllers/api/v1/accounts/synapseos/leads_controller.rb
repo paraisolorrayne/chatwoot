@@ -83,31 +83,32 @@ class Api::V1::Accounts::Synapseos::LeadsController < Api::V1::Accounts::BaseCon
   # NOTA: o upsert_by_conversation existente segue intacto; o n8n só passa a
   # chamar este endpoint num corte posterior.
   def transition
-    conv_id = params[:conversation_id]
-    return render(json: { error: 'conversation_id is required' }, status: :unprocessable_entity) if conv_id.blank?
+    return render(json: { error: 'conversation_id is required' }, status: :unprocessable_entity) if params[:conversation_id].blank?
     return render(json: { error: 'signal is required' }, status: :unprocessable_entity) if params[:signal].blank?
 
-    conv = resolve_conversation(conv_id)
+    conv = resolve_conversation(params[:conversation_id])
     return render(json: { error: 'conversation not found' }, status: :not_found) if conv.nil?
 
-    @lead = scope.find_or_initialize_by(conversation_id: conv.id) do |l|
-      l.contact_id = conv.contact_id
-      l.status = :open
-      l.source = params[:source].presence || 'n8n'
-    end
-    @lead.save! if @lead.new_record?
-
+    @lead = find_or_create_lead(conv)
     ::Synapseos::LeadLifecycle.transition(lead: @lead, signal: params[:signal], **transition_attrs)
     render :show
-  rescue ::Synapseos::LeadLifecycle::InvalidSignal => e
-    render(json: { error: e.message }, status: :unprocessable_entity)
-  rescue ::Synapseos::LeadLifecycle::MotivoRequired => e
-    render(json: { error: e.message }, status: :unprocessable_entity)
-  rescue ActiveRecord::RecordInvalid => e
+  rescue ::Synapseos::LeadLifecycle::InvalidSignal,
+         ::Synapseos::LeadLifecycle::MotivoRequired,
+         ActiveRecord::RecordInvalid => e
     render(json: { error: e.message }, status: :unprocessable_entity)
   end
 
   private
+
+  def find_or_create_lead(conv)
+    lead = scope.find_or_initialize_by(conversation_id: conv.id) do |l|
+      l.contact_id = conv.contact_id
+      l.status = :open
+      l.source = params[:source].presence || 'n8n'
+    end
+    lead.save! if lead.new_record?
+    lead
+  end
 
   # Achata o payload de transição nos attrs que LeadLifecycle.transition espera.
   def transition_attrs

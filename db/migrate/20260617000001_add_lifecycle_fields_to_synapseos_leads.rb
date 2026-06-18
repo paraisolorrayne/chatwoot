@@ -12,7 +12,9 @@ class AddLifecycleFieldsToSynapseosLeads < ActiveRecord::Migration[7.1]
 
     # Campos de negócio (antes só detectados por keyword e perdidos).
     add_column :synapseos_leads, :modelo_interesse, :string
-    add_column :synapseos_leads, :tem_troca, :boolean
+    # tem_troca é tri-state de propósito: NULL = ainda não detectado pelo SDR,
+    # true/false = detectado. Não usar default.
+    add_column :synapseos_leads, :tem_troca, :boolean # rubocop:disable Rails/ThreeStateBooleanColumn
     add_column :synapseos_leads, :forma_pagamento, :string
     add_column :synapseos_leads, :urgencia, :string
     add_column :synapseos_leads, :horizonte_compra, :string

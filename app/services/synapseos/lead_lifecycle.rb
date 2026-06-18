@@ -149,7 +149,7 @@ module Synapseos
 
     # toque 1 -> CADENCE_OFFSETS[0], etc. Estoura -> usa o último (21d).
     def next_cadence_offset(touch)
-      idx = [[touch - 1, 0].max, CADENCE_OFFSETS.size - 1].min
+      idx = (touch - 1).clamp(0, CADENCE_OFFSETS.size - 1)
       CADENCE_OFFSETS[idx]
     end
 

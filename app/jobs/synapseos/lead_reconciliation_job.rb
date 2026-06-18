@@ -24,7 +24,7 @@ module Synapseos
 
       total = i2_repaired + i1_repaired
       Rails.logger.info(
-        "[Synapseos::LeadReconciliationJob] reconciliation done: " \
+        '[Synapseos::LeadReconciliationJob] reconciliation done: ' \
         "i2_missing_next_action=#{i2_repaired} i1_unresolved_terminal=#{i1_repaired} total_violations=#{total}"
       )
       total

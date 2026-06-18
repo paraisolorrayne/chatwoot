@@ -56,7 +56,7 @@ module Synapseos
       attrs['lead_forma_pagamento'] = @lead.forma_pagamento
       attrs['lead_urgencia'] = @lead.urgencia
       attrs['lead_retomada_at'] = @lead.retomada_at&.iso8601
-      attrs.reject! { |_, v| v.nil? }
+      attrs.compact!
 
       @conversation.update_columns(custom_attributes: attrs) # rubocop:disable Rails/SkipsModelValidations
     rescue StandardError => e
