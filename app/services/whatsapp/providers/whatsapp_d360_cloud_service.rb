@@ -37,6 +37,26 @@ class Whatsapp::Providers::WhatsappD360CloudService < Whatsapp::Providers::Whats
     response.success?
   end
 
+  # Guarda contra template não-sincronizado: o TemplateProcessorService procura
+  # o template em channel.message_templates (snapshot local) e, quando não
+  # acha, devolve `parameters` NIL — o envio sai sem components e a Meta
+  # rejeita com o genérico "(#132000) Number of parameters does not match".
+  # Incidente 2026-08-07: template novo aprovado na WABA mas ainda ausente do
+  # snapshot ⇒ disparo queimado com erro que não aponta pra causa. Aqui a
+  # falha vira explícita ANTES de gastar a chamada na Meta.
+  def send_template(phone_number, template_info, message)
+    if template_info[:parameters].blank? && template_expects_parameters?(template_info[:name])
+      message&.update!(
+        status: :failed,
+        external_error: "Template '#{template_info[:name]}' não está sincronizado/aprovado neste inbox " \
+                        '— rode sync_templates antes de enviar.'
+      )
+      return nil
+    end
+
+    super
+  end
+
   def media_url(media_id)
     "#{api_base_path}/#{media_id}"
   end
@@ -51,6 +71,17 @@ class Whatsapp::Providers::WhatsappD360CloudService < Whatsapp::Providers::Whats
   end
 
   private
+
+  # O template declara placeholders ({{1}}…) no corpo? Se o snapshot local não
+  # tem o template, tratamos como "espera parâmetros" — é o caso perigoso
+  # (enviar sem components) e o operador precisa saber que falta sincronizar.
+  def template_expects_parameters?(name)
+    template = whatsapp_channel.message_templates&.find { |t| t['name'] == name }
+    return true if template.blank?
+
+    body = template['components']&.find { |c| c['type'].to_s.casecmp('body').zero? }
+    body.present? && body['text'].to_s.include?('{{')
+  end
 
   # A 360dialog devolve erros em DOIS shapes: passthrough da Meta
   # ({"error"=>{"message"=>...}}) e erros próprios do gateway com `error`
