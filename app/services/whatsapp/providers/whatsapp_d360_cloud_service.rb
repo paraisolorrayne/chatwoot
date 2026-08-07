@@ -52,6 +52,20 @@ class Whatsapp::Providers::WhatsappD360CloudService < Whatsapp::Providers::Whats
 
   private
 
+  # A 360dialog devolve erros em DOIS shapes: passthrough da Meta
+  # ({"error"=>{"message"=>...}}) e erros próprios do gateway com `error`
+  # STRING ({"error"=>"This number is blocked due to lack of payment..."}).
+  # O error_message herdado faz dig('error','message') e explode com TypeError
+  # no shape string — o handle_error crasha ANTES de marcar a mensagem como
+  # failed: fila de SendReplyJob morre em retry e o erro real fica invisível
+  # (incidente 2026-08-07: bloqueio de pagamento silencioso por 40min).
+  def error_message(response)
+    error = response.parsed_response.is_a?(Hash) ? response.parsed_response['error'] : nil
+    return error if error.is_a?(String)
+
+    error&.dig('message')
+  end
+
   def api_base_path
     ENV.fetch('D360_CLOUD_BASE_URL', 'https://waba-v2.360dialog.io')
   end

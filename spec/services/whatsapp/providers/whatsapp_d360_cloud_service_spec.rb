@@ -39,6 +39,29 @@ describe Whatsapp::Providers::WhatsappD360CloudService do
     end
   end
 
+  describe 'erros do gateway 360dialog (error string, não objeto Meta)' do
+    it 'marca a mensagem como failed com o texto do erro em vez de crashar com TypeError' do
+      stub_request(:post, 'https://waba-v2.360dialog.io/messages')
+        .to_return(status: 402,
+                   body: { error: 'This number is blocked due to lack of payment on client side.' }.to_json,
+                   headers: response_headers)
+
+      expect(service.send_message('+553499793594', message)).to be_nil
+      expect(message.reload.status).to eq('failed')
+      expect(message.external_error).to include('lack of payment')
+    end
+
+    it 'segue extraindo o shape objeto da Meta (passthrough)' do
+      stub_request(:post, 'https://waba-v2.360dialog.io/messages')
+        .to_return(status: 400,
+                   body: { error: { message: 'Template not found', code: 132_001 } }.to_json,
+                   headers: response_headers)
+
+      service.send_message('+553499793594', message)
+      expect(message.reload.external_error).to eq('Template not found')
+    end
+  end
+
   describe '#media_url' do
     it 'builds the media lookup URL without graph version prefix' do
       expect(service.media_url('media-123')).to eq 'https://waba-v2.360dialog.io/media-123'
