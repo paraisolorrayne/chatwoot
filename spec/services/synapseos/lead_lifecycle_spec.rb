@@ -45,12 +45,25 @@ RSpec.describe Synapseos::LeadLifecycle do
         end
       end
 
-      it 'falls back to now when horizonte is imediato/unknown' do
+      it 'falls back to now when horizonte is imediato' do
         freeze_time do
           described_class.transition(lead: lead, signal: :quer_depois, horizonte_compra: 'imediato')
           lead.reload
           expect(lead.retomada_at).to eq(Time.current)
           expect(lead.next_action_at).to eq(Time.current)
+        end
+      end
+
+      it 'schedules +3 months when horizonte is unknown or sem_prazo (never now)' do
+        freeze_time do
+          described_class.transition(lead: lead, signal: :quer_depois)
+          lead.reload
+          expect(lead.retomada_at).to eq(Time.current + 3.months)
+          expect(lead.next_action_at).to eq(lead.retomada_at)
+
+          described_class.transition(lead: lead, signal: :quer_depois, horizonte_compra: 'sem_prazo')
+          lead.reload
+          expect(lead.retomada_at).to eq(Time.current + 3.months)
         end
       end
     end
