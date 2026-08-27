@@ -45,8 +45,13 @@ module Synapseos
       '1-3m' => 1.month,
       '3-6m' => 3.months,
       '6-12m' => 6.months,
-      '+12m' => 12.months
+      '+12m' => 12.months,
+      # Futuro SEM prazo (cliente vago / não perguntado): +3 meses. Antes caía
+      # em `now` — next_action_at já vencido no ato, sweeper flagando todo dia
+      # (conv 401, 2026-08-27). Mesma convenção dos 90d do n8n.
+      'sem_prazo' => 3.months
     }.freeze
+    SEM_PRAZO_OFFSET = 3.months
 
     # Slugs de stage usados pela máquina (criados sob demanda pelo template
     # audi_sdr). Se a account não os tiver, a transição não falha — só não move
@@ -118,7 +123,8 @@ module Synapseos
       @lead.estado = 'quer_depois'
       move_to_stage(STAGE_FUTURO)
       @lead.status = :open
-      offset = HORIZONTE_OFFSETS.fetch(@lead.horizonte_compra, nil)
+      # 'imediato' => nil => retoma agora; desconhecido/vazio => sem_prazo (+3m).
+      offset = HORIZONTE_OFFSETS.fetch(@lead.horizonte_compra) { SEM_PRAZO_OFFSET }
       @lead.retomada_at = offset ? now + offset : now
       @lead.motivo = nil
       @lead.next_action_at = @lead.retomada_at
