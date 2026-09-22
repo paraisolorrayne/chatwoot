@@ -249,10 +249,10 @@ const deleteConversation = () => {
 
 <template>
   <div
-    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 ltr:border-l-[3px] rtl:border-r-[3px] border-solid cursor-pointer conversation hover:bg-s-subtle dark:hover:bg-s-subtle group transition-colors"
+    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 my-1 rounded-xl ltr:border-l-[3px] rtl:border-r-[3px] border-solid cursor-pointer conversation hover:bg-s-subtle dark:hover:bg-s-subtle group transition-colors"
     :class="[
       {
-        'active animate-card-select bg-s-accent-100 ltr:border-s-accent-500 rtl:border-s-accent-500':
+        'active bg-s-brand-soft-hover shadow-sm ltr:border-s-accent-500 rtl:border-s-accent-500':
           isActiveChat,
         'bg-s-subtle ltr:border-transparent rtl:border-transparent':
           selected && !isActiveChat,
@@ -274,7 +274,7 @@ const deleteConversation = () => {
         v-if="!hideThumbnail"
         :name="currentContact.name"
         :src="currentContact.thumbnail"
-        :size="32"
+        :size="38"
         :status="currentContact.availability_status"
         :class="!showInboxName ? 'mt-4' : 'mt-8'"
         hide-offline-status
@@ -298,9 +298,7 @@ const deleteConversation = () => {
         </template>
       </Avatar>
     </div>
-    <div
-      class="px-0 py-3 border-b group-hover:border-transparent flex-1 border-s-border-subtle min-w-0"
-    >
+    <div class="px-0 py-4 flex-1 min-w-0">
       <div
         v-if="showMetaSection"
         class="flex items-center min-w-0 gap-1"

@@ -26,7 +26,7 @@ const count = computed(() =>
 <template>
   <component
     :is="to ? 'router-link' : 'div'"
-    class="flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium transition-colors min-w-0 relative"
+    class="flex items-center gap-3 py-3 rounded-xl text-sm font-medium transition-colors min-w-0 relative focus-visible:outline focus-visible:outline-2 focus-visible:outline-s-accent-500"
     role="button"
     draggable="false"
     :to="to"
