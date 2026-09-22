@@ -132,6 +132,18 @@ describe Synapseos::SupportRequestService do
       expect(params.dig('processed_params', 'body', '1')).to include('Bot mudo', 'Conversa 42 sem resposta')
       expect(params.dig('processed_params', 'body', '1')).not_to include("\n")
     end
+
+    it 'truncates the template parameter to the Meta limit while keeping the full text in the message' do
+      allow(ENV).to receive(:fetch).with('SYNAPSEOS_SUPPORT_TEMPLATE_NAME', nil).and_return('suporte')
+      inbox.channel.update!(message_templates: [{ 'name' => 'suporte', 'language' => 'pt_BR', 'status' => 'approved' }])
+
+      message = perform(inbox: inbox.reload, description: 'x' * 3000)
+      param = message.additional_attributes.dig('template_params', 'processed_params', 'body', '1')
+
+      expect(param.length).to eq(described_class::TEMPLATE_PARAM_MAX_LENGTH)
+      expect(param).to end_with('…')
+      expect(message.content).to end_with('x' * 3000)
+    end
   end
 
   context 'with an official provider inside the reply window' do

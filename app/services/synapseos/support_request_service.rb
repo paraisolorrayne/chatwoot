@@ -3,6 +3,8 @@
 class Synapseos::SupportRequestService
   include ActiveModel::Model
 
+  TEMPLATE_PARAM_MAX_LENGTH = 1024
+
   attr_accessor :account, :user, :inbox, :subject, :description, :request_id
 
   validates :subject, presence: true, length: { maximum: 120 }
@@ -68,8 +70,17 @@ class Synapseos::SupportRequestService
     end
     {
       name: template['name'], language: template['language'], namespace: template['namespace'],
-      processed_params: { body: { '1' => message_content.gsub(/\s+/, ' ').strip } }
+      processed_params: { body: { '1' => template_body_param } }
     }.compact
+  end
+
+  # Meta rejects body parameters with line breaks, runs of 4+ spaces or more
+  # than TEMPLATE_PARAM_MAX_LENGTH characters, so the request is flattened and
+  # truncated only on the template path. The full text still lands in the
+  # Chatwoot conversation.
+  def template_body_param
+    flat = message_content.gsub(/\s+/, ' ').strip
+    flat.length > TEMPLATE_PARAM_MAX_LENGTH ? "#{flat[0, TEMPLATE_PARAM_MAX_LENGTH - 1]}…" : flat
   end
 
   def approved_template
