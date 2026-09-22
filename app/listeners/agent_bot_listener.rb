@@ -63,6 +63,9 @@ class AgentBotListener < BaseListener
   private
 
   def agent_bots_for(inbox, conversation = nil)
+    # CUSTOMIZAÇÃO_SYNAPSEOS: contato interno (suporte/operadores) não vai pro bot.
+    return [] if Synapseos::InternalContacts.internal?(conversation)
+
     bots = []
     bots << conversation.assignee_agent_bot if conversation&.assignee_agent_bot.present?
     inbox_bot = active_inbox_agent_bot(inbox)
