@@ -61,3 +61,20 @@ cabeçalhos, cartões de conversa, estado selecionado e editor de mensagens.
 As verificações locais usam dados fictícios e bloqueiam chamadas externas.
 A entrega real por cada provedor deve ser conferida em homologação com o canal configurado.
 Não há nova migração de banco de dados nesta alteração.
+
+## Testes automatizados
+
+- `spec/services/synapseos/support_request_service_spec.rb` — conteúdo e destinatário
+  da mensagem, idempotência por protocolo, reuso da conversa de suporte, validação de
+  entrada, janela fechada sem template (nada é criado), template aprovado com o pedido
+  no parâmetro `{{1}}` e envio de sessão dentro da janela.
+- `spec/controllers/api/v1/accounts/synapseos/support_requests_spec.rb` — autenticação,
+  isolamento entre contas, canais visíveis por usuário, `queued`/`failed` no histórico,
+  `422` com `invalid_request` e `window_closed`, inbox inacessível ou de outra conta (`404`).
+
+```bash
+RAILS_ENV=test bundle exec rspec spec/services/synapseos/support_request_service_spec.rb \
+  spec/controllers/api/v1/accounts/synapseos/support_requests_spec.rb \
+  spec/finders/conversation_finder_spec.rb spec/finders/message_finder_spec.rb \
+  spec/services/conversations/filter_service_spec.rb
+```
