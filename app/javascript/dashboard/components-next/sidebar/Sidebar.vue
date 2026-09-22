@@ -1,5 +1,5 @@
 <script setup>
-import { h, ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { provideSidebarContext, useSidebarResize } from './provider';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useKbd } from 'dashboard/composables/utils/useKbd';
@@ -319,6 +319,13 @@ const menuItems = computed(() => {
     // CUSTOMIZAÇÃO_SYNAPSEOS: Campaigns e Help Center (Portals) escondidos da sidebar.
     // As rotas permanecem registradas para não quebrar automações/integrações existentes.
     {
+      name: 'SynapseOS Support',
+      label: t('SYNAPSEOS.SUPPORT.TITLE'),
+      icon: 'i-lucide-life-buoy',
+      to: accountScopedRoute('synapseos_support'),
+      activeOn: ['synapseos_support'],
+    },
+    {
       name: 'Settings',
       label: t('SIDEBAR.SETTINGS'),
       icon: 'i-lucide-bolt',
@@ -637,14 +644,24 @@ const menuItems = computed(() => {
         type="button"
         :title="t('SIDEBAR.SYNAPSEOS_PLATFORM')"
         class="flex gap-2 items-center px-3 h-9 rounded-lg border border-white/10 bg-white/[0.06] text-s-on-dark-muted hover:bg-white/10 hover:text-s-on-dark transition-colors"
-        :class="isEffectivelyCollapsed ? 'justify-center w-9 px-0' : 'w-[calc(100%-1rem)] mx-2'"
+        :class="
+          isEffectivelyCollapsed
+            ? 'justify-center w-9 px-0'
+            : 'w-[calc(100%-1rem)] mx-2'
+        "
         @click="openPlatform"
       >
         <span class="flex-shrink-0 i-lucide-layout-grid size-4" />
-        <span v-if="!isEffectivelyCollapsed" class="flex-grow text-start text-sm">
+        <span
+          v-if="!isEffectivelyCollapsed"
+          class="flex-grow text-start text-sm"
+        >
           {{ t('SIDEBAR.SYNAPSEOS_PLATFORM') }}
         </span>
-        <span v-if="!isEffectivelyCollapsed" class="flex-shrink-0 i-lucide-external-link size-3.5 opacity-60" />
+        <span
+          v-if="!isEffectivelyCollapsed"
+          class="flex-shrink-0 i-lucide-external-link size-3.5 opacity-60"
+        />
       </button>
       <div
         class="px-2 py-2 flex-shrink-0 flex w-full z-50 gap-2 items-center border-t border-white/10"

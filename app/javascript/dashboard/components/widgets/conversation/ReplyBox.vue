@@ -1445,7 +1445,7 @@ export default {
 }
 
 .reply-box {
-  @apply relative mb-2 mx-2 border border-s-border rounded-xl bg-s-surface;
+  @apply relative mb-4 mx-4 border border-s-border rounded-2xl bg-s-surface shadow-sm focus-within:ring-2 focus-within:ring-s-accent-500/30 focus-within:border-s-accent-500;
 
   &.is-private {
     @apply bg-s-warning-soft dark:border-s-warning/20 border-s-warning/20;

@@ -184,9 +184,9 @@ describe ConversationFinder do
       let(:params) { { status: 'open', assignee_type: 'me', page: 1 } }
 
       it 'returns paginated conversations' do
-        create_list(:conversation, 50, account: account, inbox: inbox, assignee: user_1)
+        create_list(:conversation, ConversationPagination.page_size + 1, account: account, inbox: inbox, assignee: user_1)
         result = conversation_finder.perform
-        expect(result[:conversations].length).to be 25
+        expect(result[:conversations].length).to be ConversationPagination.page_size
       end
     end
 

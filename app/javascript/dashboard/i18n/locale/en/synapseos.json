@@ -265,6 +265,48 @@
         "LOST": "Lost",
         "CUSTOM": "Custom"
       }
+    },
+    "SUPPORT": {
+      "TITLE": "Support",
+      "SUBTITLE": "Get help from our team without leaving your workspace.",
+      "NEW_REQUEST": "How can we help?",
+      "FORM_HINT": "Tell us what happened. Your account and sender details are included automatically.",
+      "CHANNEL": "Send from",
+      "SELECT_CHANNEL": "Select a WhatsApp channel",
+      "SUBJECT": "Subject",
+      "SUBJECT_PLACEHOLDER": "A short summary of the problem",
+      "DESCRIPTION": "What happened?",
+      "DESCRIPTION_PLACEHOLDER": "Describe what you were doing, what happened and what you expected. Include a conversation number when relevant.",
+      "IDENTIFIED_AS": "Requested by {name}",
+      "SEND": "Send support request",
+      "SENDING": "Sending…",
+      "DIRECT_SUPPORT": "Direct support on WhatsApp",
+      "DELIVERY_HINT": "Your request is sent through the selected account channel. Our team receives your message with the name of the person requesting help.",
+      "DESTINATION": "Support number",
+      "HELP_TITLE": "Help us investigate",
+      "HELP_DESCRIPTION": "Include the time of the issue and the affected conversation. Never include passwords or access tokens.",
+      "HISTORY": "Recent requests",
+      "REFRESH": "Refresh",
+      "EMPTY_HISTORY": "Your latest 50 support requests will appear here, with their delivery status.",
+      "LOADING": "Loading support channels…",
+      "NO_CHANNEL": "No WhatsApp channel is available to your user in this account. Ask an administrator to connect a channel or grant you access.",
+      "LOAD_ERROR": "Support could not be loaded. Please try again.",
+      "SEND_ERROR": "The request could not be confirmed. Your text has been kept; try again.",
+      "WINDOW_CLOSED": "This WhatsApp channel requires an approved support template to start a conversation. Ask an administrator to configure it, or ask support to message this channel first to open the reply window.",
+      "SUCCESS": "Request registered for delivery. Track its status below.",
+      "STATUS": {
+        "queued": "Queued",
+        "sent": "Sent",
+        "delivered": "Delivered",
+        "read": "Read",
+        "failed": "Delivery failed"
+      },
+      "CHARACTERS": "{count} / 3000"
+    },
+    "CONVERSATIONS": {
+      "LOAD_MORE": "Load more conversations",
+      "LOAD_ERROR": "Could not load conversations. Try again.",
+      "LOADED": "{count} conversations loaded"
     }
   }
 }

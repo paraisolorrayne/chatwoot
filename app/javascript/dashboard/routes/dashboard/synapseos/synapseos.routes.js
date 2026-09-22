@@ -11,6 +11,12 @@ const AgentMetrics = () => import('./pages/AgentMetrics.vue');
 
 export const routes = [
   {
+    path: frontendURL('accounts/:accountId/synapseos/support'),
+    name: 'synapseos_support',
+    component: () => import('./pages/SupportPage.vue'),
+    meta: { permissions: ['administrator', 'agent'] },
+  },
+  {
     path: frontendURL('accounts/:accountId/synapseos/dashboard'),
     name: 'synapseos_dashboard',
     component: DashboardPage,
