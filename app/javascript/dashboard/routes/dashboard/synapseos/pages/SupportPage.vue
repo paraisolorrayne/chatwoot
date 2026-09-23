@@ -278,10 +278,7 @@ useIntervalFn(() => loadRequests(true), 10000);
           <p v-if="destination" class="text-xs text-s-muted mb-1">
             {{ t('SYNAPSEOS.SUPPORT.DESTINATION') }}
           </p>
-          <p
-            v-if="destination"
-            class="text-base font-semibold tabular-nums mb-5"
-          >
+          <p v-if="destination" class="text-sm text-s-muted tabular-nums mb-5">
             {{ destination }}
           </p>
           <div class="border-t border-s-border-subtle pt-5">
