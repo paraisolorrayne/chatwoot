@@ -890,7 +890,7 @@ watch(conversationFilters, (newVal, oldVal) => {
     class="flex flex-col flex-shrink-0 min-h-0 conversations-list-wrap bg-s-surface border-r border-s-border-subtle"
     :class="[
       { hidden: !showConversationList },
-      isOnExpandedLayout ? 'basis-full' : 'w-[360px] 2xl:w-[440px] max-w-full',
+      isOnExpandedLayout ? 'basis-full' : 'w-[340px] 2xl:w-[380px] max-w-full',
     ]"
   >
     <slot />

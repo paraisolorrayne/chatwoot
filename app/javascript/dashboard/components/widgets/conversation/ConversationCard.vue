@@ -249,10 +249,10 @@ const deleteConversation = () => {
 
 <template>
   <div
-    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 my-1 rounded-xl ltr:border-l-[3px] rtl:border-r-[3px] border-solid cursor-pointer conversation hover:bg-s-subtle dark:hover:bg-s-subtle group transition-colors"
+    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 my-1 rounded-lg ltr:border-l-[3px] rtl:border-r-[3px] border-solid cursor-pointer conversation hover:bg-s-subtle dark:hover:bg-s-subtle group transition-colors"
     :class="[
       {
-        'active bg-s-brand-soft-hover shadow-sm ltr:border-s-accent-500 rtl:border-s-accent-500':
+        'active bg-s-brand-soft-hover ltr:border-s-brand-text rtl:border-s-brand-text':
           isActiveChat,
         'bg-s-subtle ltr:border-transparent rtl:border-transparent':
           selected && !isActiveChat,

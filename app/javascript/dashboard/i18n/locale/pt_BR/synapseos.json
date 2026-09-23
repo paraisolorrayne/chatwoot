@@ -24,12 +24,12 @@
       }
     },
     "LIVE_AGENTS": {
-      "TITLE": "Live Agents",
+      "TITLE": "Agentes ao vivo",
       "SUBTITLE": "Visão em tempo real da atividade e carga dos agentes",
       "SEARCH_PLACEHOLDER": "Buscar por nome ou e-mail…",
       "REFRESH_HINT": "Atualizando automaticamente a cada 15s",
       "EMPTY_TITLE": "Nenhum agente pra mostrar ainda",
-      "EMPTY_DESCRIPTION": "Agentes aparecem aqui assim que ficam online ou começam a atender conversas. Convide colegas em Settings → Agents.",
+      "EMPTY_DESCRIPTION": "Os agentes aparecem aqui quando ficam disponíveis ou começam a atender. Convide sua equipe em Configurações → Agentes.",
       "COL_NAME": "Agente",
       "COL_STATUS": "Status",
       "COL_OPEN": "Conversas abertas",
@@ -259,6 +259,48 @@
         "LOST": "Perdido",
         "CUSTOM": "Custom"
       }
+    },
+    "SUPPORT": {
+      "TITLE": "Suporte",
+      "SUBTITLE": "Precisa de ajuda? Fale com nossa equipe por aqui.",
+      "NEW_REQUEST": "Abrir chamado",
+      "FORM_HINT": "Descreva o problema. Seu nome e os dados da conta acompanham o chamado.",
+      "CHANNEL": "Canal de atendimento",
+      "SELECT_CHANNEL": "Selecione um WhatsApp da conta",
+      "SUBJECT": "Assunto",
+      "SUBJECT_PLACEHOLDER": "Ex.: não consigo carregar uma conversa",
+      "DESCRIPTION": "O que aconteceu?",
+      "DESCRIPTION_PLACEHOLDER": "Conte o que você tentou fazer e qual problema encontrou. Se possível, informe o número da conversa e o horário.",
+      "IDENTIFIED_AS": "Solicitado por {name}",
+      "SEND": "Enviar chamado",
+      "SENDING": "Enviando…",
+      "DIRECT_SUPPORT": "Como funciona",
+      "DELIVERY_HINT": "Seu chamado chega à nossa equipe pelo WhatsApp selecionado. Você pode acompanhar o envio e abrir a conversa no histórico abaixo.",
+      "DESTINATION": "WhatsApp do suporte",
+      "HELP_TITLE": "Para agilizar o atendimento",
+      "HELP_DESCRIPTION": "Informe a tela, o horário e a conversa em que o problema aconteceu. Isso ajuda nossa equipe a localizar a falha.",
+      "HISTORY": "Seus chamados recentes",
+      "REFRESH": "Atualizar",
+      "EMPTY_HISTORY": "Nenhum chamado por aqui ainda. Depois do primeiro envio, você poderá acompanhá-lo nesta lista.",
+      "LOADING": "Carregando atendimento…",
+      "NO_CHANNEL": "Você ainda não tem acesso a um WhatsApp nesta conta. Peça ao administrador para liberar um canal de atendimento.",
+      "LOAD_ERROR": "Não foi possível carregar o suporte. Clique em Atualizar para tentar novamente.",
+      "SEND_ERROR": "Não conseguimos confirmar o envio. Seu texto foi mantido; tente novamente.",
+      "WINDOW_CLOSED": "O WhatsApp desta conta ainda não está habilitado para iniciar uma conversa com o suporte. Peça ao administrador para configurar o canal.",
+      "SUCCESS": "Chamado registrado. Acompanhe o envio no histórico abaixo.",
+      "STATUS": {
+        "queued": "Aguardando envio",
+        "sent": "Enviado",
+        "delivered": "Entregue",
+        "read": "Lido",
+        "failed": "Falha no envio"
+      },
+      "CHARACTERS": "{count} / 3000"
+    },
+    "CONVERSATIONS": {
+      "LOAD_MORE": "Carregar mais conversas",
+      "LOAD_ERROR": "Não foi possível carregar as conversas. Tente novamente.",
+      "LOADED": "{count} conversas carregadas"
     }
   }
 }
