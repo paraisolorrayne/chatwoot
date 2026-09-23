@@ -2,14 +2,14 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIntervalFn } from '@vueuse/core';
-import axios from 'axios';
+import SupportRequestsAPI from 'dashboard/api/supportRequests';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useMapGetter } from 'dashboard/composables/store';
 import Button from 'dashboard/components-next/button/Button.vue';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { accountId, accountScopedRoute } = useAccount();
 const currentUser = useMapGetter('getCurrentUser');
 const inboxes = ref([]);
@@ -31,13 +31,14 @@ const canSubmit = computed(
     !sending.value &&
     !loading.value
 );
-const endpoint = id => `/api/v1/accounts/${id}/synapseos/support_requests`;
-
 async function loadRequests(silent = false) {
   const id = accountId.value;
-  if (!silent) loading.value = true;
+  if (!silent) {
+    loading.value = true;
+    error.value = '';
+  }
   try {
-    const { data } = await axios.get(endpoint(id));
+    const { data } = await SupportRequestsAPI.get();
     if (id !== accountId.value) return;
     inboxes.value = data.inboxes;
     requests.value = data.requests;
@@ -59,7 +60,7 @@ async function submit() {
   error.value = '';
   success.value = false;
   try {
-    await axios.post(endpoint(id), {
+    await SupportRequestsAPI.create({
       support_request: {
         inbox_id: inboxId.value,
         subject: subject.value.trim(),
@@ -113,25 +114,25 @@ useIntervalFn(() => loadRequests(true), 10000);
 
 <template>
   <main class="flex-1 min-w-0 overflow-y-auto bg-s-bg text-s-primary">
-    <div class="max-w-6xl mx-auto px-5 py-8 md:px-10 md:py-12">
-      <header class="flex items-start gap-4 mb-8">
+    <div class="max-w-5xl mx-auto px-5 py-6 md:px-8 md:py-8">
+      <header class="flex items-start gap-4 mb-7">
         <div
-          class="flex items-center justify-center size-12 rounded-2xl bg-s-surface border border-s-border shadow-sm shrink-0"
+          class="flex items-center justify-center size-12 rounded-xl bg-s-info-soft shrink-0"
         >
           <span class="i-lucide-life-buoy size-6 text-s-brand-text" />
         </div>
         <div>
-          <h1 class="text-2xl font-semibold tracking-tight mb-2">
+          <h1 class="text-2xl font-semibold tracking-tight mb-1">
             {{ t('SYNAPSEOS.SUPPORT.TITLE') }}
           </h1>
-          <p class="text-s-muted text-sm max-w-2xl mb-0">
+          <p class="text-s-muted text-sm leading-relaxed max-w-2xl mb-0">
             {{ t('SYNAPSEOS.SUPPORT.SUBTITLE') }}
           </p>
         </div>
       </header>
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] items-start">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px] items-start">
         <section
-          class="bg-s-surface rounded-2xl border border-s-border shadow-sm p-6 md:p-8"
+          class="bg-s-surface rounded-xl border border-s-border p-5 md:p-7"
         >
           <h2 class="text-lg font-semibold mb-1">
             {{ t('SYNAPSEOS.SUPPORT.NEW_REQUEST') }}
@@ -225,7 +226,7 @@ useIntervalFn(() => loadRequests(true), 10000);
                   v-model="description"
                   required
                   maxlength="3000"
-                  rows="7"
+                  rows="5"
                   class="w-full !mb-0 !rounded-xl !min-h-40 !bg-s-bg !border-s-border !text-s-primary resize-y"
                   :placeholder="t('SYNAPSEOS.SUPPORT.DESCRIPTION_PLACEHOLDER')"
                   aria-describedby="support-description-count"
@@ -266,25 +267,28 @@ useIntervalFn(() => loadRequests(true), 10000);
             </fieldset>
           </form>
         </section>
-        <aside class="rounded-2xl bg-s-sidebar text-s-on-dark p-6">
-          <span class="i-lucide-message-circle size-7 text-s-accent-500 mb-5" />
-          <h2 class="text-base font-semibold text-s-on-dark mb-3">
+        <aside class="rounded-xl border border-s-border bg-s-surface p-5">
+          <span class="i-lucide-message-circle size-6 text-s-brand-text mb-4" />
+          <h2 class="text-base font-semibold text-s-primary mb-3">
             {{ t('SYNAPSEOS.SUPPORT.DIRECT_SUPPORT') }}
           </h2>
-          <p class="text-sm text-s-on-dark-muted leading-relaxed mb-5">
+          <p class="text-sm text-s-secondary leading-relaxed mb-5">
             {{ t('SYNAPSEOS.SUPPORT.DELIVERY_HINT') }}
           </p>
-          <p class="text-xs text-s-on-dark-muted mb-1">
+          <p v-if="destination" class="text-xs text-s-muted mb-1">
             {{ t('SYNAPSEOS.SUPPORT.DESTINATION') }}
           </p>
-          <p class="text-lg font-semibold tabular-nums mb-6">
+          <p
+            v-if="destination"
+            class="text-base font-semibold tabular-nums mb-5"
+          >
             {{ destination }}
           </p>
-          <div class="border-t border-white/10 pt-5">
+          <div class="border-t border-s-border-subtle pt-5">
             <p class="text-sm font-medium mb-2">
               {{ t('SYNAPSEOS.SUPPORT.HELP_TITLE') }}
             </p>
-            <p class="text-sm text-s-on-dark-muted leading-relaxed mb-0">
+            <p class="text-sm text-s-secondary leading-relaxed mb-0">
               {{ t('SYNAPSEOS.SUPPORT.HELP_DESCRIPTION') }}
             </p>
           </div>
@@ -306,7 +310,7 @@ useIntervalFn(() => loadRequests(true), 10000);
         </div>
         <div
           v-if="!requests.length && !loading"
-          class="rounded-2xl border border-dashed border-s-border p-8 text-center text-sm text-s-muted"
+          class="rounded-xl border border-s-border bg-s-surface p-6 text-center text-sm text-s-muted"
         >
           {{ t('SYNAPSEOS.SUPPORT.EMPTY_HISTORY') }}
         </div>
@@ -329,7 +333,11 @@ useIntervalFn(() => loadRequests(true), 10000);
               </RouterLink>
               <p class="text-xs text-s-muted mt-2 mb-0">
                 {{ request.sender_name }} · {{ request.inbox_name }} ·
-                {{ new Date(request.created_at).toLocaleString() }}
+                {{
+                  new Date(request.created_at).toLocaleString(
+                    locale.replace('_', '-')
+                  )
+                }}
               </p>
             </div>
             <span

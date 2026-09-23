@@ -33,8 +33,9 @@ cabeçalho ou botões que exijam parâmetros. Esse parâmetro recebe os dados do
 Sem template aprovado, a API retorna `422` com `window_closed`, o formulário mantém
 os dados e orienta o operador. Nenhuma mensagem é criada nesse caso.
 
-As novas chaves de interface estão no catálogo inglês, seguindo a regra de tradução
-do `AGENTS.md` deste fork; outros idiomas usam o fallback até a tradução do catálogo.
+Os textos do suporte e da paginação estão disponíveis em português brasileiro e inglês.
+A central usa o mesmo cliente autenticado das demais APIs do painel; importar o Axios
+sem essa configuração deixa as chamadas sem os headers de sessão e provoca erro 401.
 
 ## Conversas
 
