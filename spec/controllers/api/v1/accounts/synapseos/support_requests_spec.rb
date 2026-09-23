@@ -38,7 +38,7 @@ RSpec.describe 'Synapseos Support Requests API', type: :request do
 
       expect(response).to have_http_status(:success)
       body = response.parsed_body
-      expect(body['destination']).to eq(Synapseos::SupportRequestService.phone_number)
+      expect(body['destination']).to eq("•••• #{Synapseos::SupportRequestService.phone_number.last(4)}")
       expect(body['inboxes']).to eq([{ 'id' => whatsapp_inbox.id, 'name' => whatsapp_inbox.name, 'phone_number' => channel.phone_number }])
       expect(body['requests']).to eq([])
     end

@@ -3,7 +3,7 @@ class Api::V1::Accounts::Synapseos::SupportRequestsController < Api::V1::Account
 
   def index
     render json: {
-      destination: ::Synapseos::SupportRequestService.phone_number,
+      destination: "•••• #{::Synapseos::SupportRequestService.phone_number.gsub(/\D/, '').last(4)}",
       inboxes: support_inboxes.map { |inbox| { id: inbox.id, name: inbox.name, phone_number: inbox.channel.phone_number } },
       requests: requests.includes(:sender, :conversation, :inbox).order(created_at: :desc).limit(50).map { |message| serialize(message) }
     }
