@@ -82,7 +82,7 @@ export function useOperators() {
         hasInput: !NO_INPUT_OPTS.includes(value),
         inputOverride: OPS_INPUT_OVERRIDE[value] || null,
         icon: h('span', {
-          class: `${filterOperatorIcon[value]} !text-n-blue-11`,
+          class: `${filterOperatorIcon[value]} !text-s-brand-text`,
         }),
       };
       return acc;

@@ -232,8 +232,16 @@ onMounted(() => {
 
 <style lang="scss">
 ninja-keys {
-  --ninja-accent-color: rgba(39, 129, 246, 1);
+  // CUSTOMIZAÇÃO_SYNAPSEOS — paleta Cmd+K nos tokens do design system Fykos.
+  --ninja-accent-color: rgb(var(--s-brand));
   --ninja-font-family: 'Inter';
+  --ninja-modal-background: rgb(var(--s-surface));
+  --ninja-secondary-background-color: rgb(var(--s-subtle));
+  --ninja-selected-background: rgb(var(--s-brand-soft));
+  --ninja-footer-background: rgb(var(--s-subtle));
+  --ninja-text-color: rgb(var(--s-text-primary));
+  --ninja-icon-color: rgb(var(--s-text-secondary));
+  --ninja-secondary-text-color: rgb(var(--s-text-muted));
   z-index: 9999;
 }
 
@@ -241,14 +249,7 @@ ninja-keys {
 // If OS is in dark theme and app is in light mode, It will prevent showing dark theme in command bar
 body.dark {
   ninja-keys {
-    --ninja-overflow-background: rgba(26, 29, 30, 0.5);
-    --ninja-modal-background: #151718;
-    --ninja-secondary-background-color: #26292b;
-    --ninja-selected-background: #26292b;
-    --ninja-footer-background: #2b2f31;
-    --ninja-text-color: #f8faf9;
-    --ninja-icon-color: #f8faf9;
-    --ninja-secondary-text-color: #c2c9c6;
+    --ninja-overflow-background: rgba(0, 0, 0, 0.6);
   }
 }
 </style>

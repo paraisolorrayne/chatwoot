@@ -180,7 +180,7 @@ const renderInstruction = instruction => () =>
         </div>
 
         <div
-          class="absolute bottom-0 w-full flex items-end justify-center text-xs text-s-muted bg-gradient-to-t h-40 from-n-solid-2 via-n-solid-2 via-10% to-transparent transition-all duration-500 ease-in-out px-2 py-1 rounded pointer-events-none"
+          class="absolute bottom-0 w-full flex items-end justify-center text-xs text-s-muted bg-gradient-to-t h-40 from-s-surface-raised via-s-surface-raised via-10% to-transparent transition-all duration-500 ease-in-out px-2 py-1 rounded pointer-events-none"
           :class="{
             'visible opacity-100': !isInstructionExpanded,
             'invisible opacity-0': isInstructionExpanded || !needsOverlay,
@@ -192,10 +192,7 @@ const renderInstruction = instruction => () =>
           />
         </div>
       </div>
-      <span
-        v-if="tools?.length"
-        class="text-sm text-s-muted font-medium mb-1"
-      >
+      <span v-if="tools?.length" class="text-sm text-s-muted font-medium mb-1">
         {{ t('CAPTAIN.ASSISTANTS.SCENARIOS.ADD.SUGGESTED.TOOLS_USED') }}
         {{ tools?.map(tool => `@${tool}`).join(', ') }}
       </span>

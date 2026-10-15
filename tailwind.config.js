@@ -58,7 +58,7 @@ const tailwindConfig = {
       },
       ringColor: {
         // CUSTOMIZAÇÃO_SYNAPSEOS — focus ring padrão
-        focus: 'rgb(var(--s-focus) / 0.3)',
+        focus: 'rgb(var(--s-focus) / <alpha-value>)',
       },
       fontWeight: {
         420: '420',
