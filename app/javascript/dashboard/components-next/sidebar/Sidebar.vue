@@ -277,10 +277,8 @@ const menuItems = computed(() => {
           },
         ]
       : []),
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Tempo Real removido do nav — redundante com
-    // Live Agents (mesmas métricas, mesma semântica de monitoramento ao vivo).
-    // A rota `synapseos_live_dashboard` continua existindo no routes.js caso
-    // algum link direto ainda seja referenciado.
+    // CUSTOMIZAÇÃO_SYNAPSEOS: Tempo Real removido — redundante com Live Agents
+    // (mesmas métricas). A rota e a página foram apagadas.
     {
       name: 'SynapseOS Pipeline',
       label: t('SIDEBAR.SYNAPSEOS_PIPELINE'),

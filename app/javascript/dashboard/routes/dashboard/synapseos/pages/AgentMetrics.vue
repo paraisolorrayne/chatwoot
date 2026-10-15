@@ -6,6 +6,9 @@ import SynapseCard from 'next/synapseos/SynapseCard.vue';
 import SynapseButton from 'next/synapseos/SynapseButton.vue';
 import SynapseStatusPill from 'next/synapseos/SynapseStatusPill.vue';
 import SynapseQuotaBar from 'next/synapseos/SynapseQuotaBar.vue';
+import SynapsePageHeader from 'next/synapseos/SynapsePageHeader.vue';
+import SynapseSkeleton from 'next/synapseos/SynapseSkeleton.vue';
+import { agentClasses } from 'dashboard/helper/synapseos/agentIdentity';
 import {
   useAgentMetricsStore,
   RANGE_OPTIONS,
@@ -15,7 +18,6 @@ import {
   formatPercent,
   formatSeconds,
   formatCount,
-  EMPTY,
 } from 'dashboard/helper/synapseos/metricsFormatters';
 
 const { t } = useI18n();
@@ -90,6 +92,15 @@ const AGENT_CARDS = {
   },
 };
 
+// CUSTOMIZAÇÃO_SYNAPSEOS: classes literais por tom (o Tailwind não gera
+// classes montadas dinamicamente, como `text-s-${tone}-text`).
+const TONE_CLASSES = {
+  brand: 'bg-s-brand-soft text-s-brand-text',
+  info: 'bg-s-info-soft text-s-info-text',
+  success: 'bg-s-success-soft text-s-success-text',
+  warning: 'bg-s-warning-soft text-s-warning-text',
+};
+
 const GROUPS = [
   // Natália aparece primeiro na FRONTLINE — é o template base de SDR usado
   // em clientes que não cabem em squadron especializado (Audi, Royal Enfield).
@@ -126,11 +137,9 @@ const agentDisplayName = slug =>
 const kpiLabel = (slug, key) =>
   t(`SYNAPSEOS.METRICS.AGENTS.${i18nAgentKey(slug)}.KPI.${key.toUpperCase()}`);
 
-const lastUpdatedLabel = computed(() => {
-  if (!store.lastUpdatedAt) return EMPTY;
-  const d = new Date(store.lastUpdatedAt);
-  return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-});
+const refreshing = computed(() =>
+  store.activeSlugs.some(slug => store.agents[slug].isLoading)
+);
 
 const refreshAll = () => store.fetchAll({ accountId: accountId.value });
 
@@ -147,33 +156,32 @@ onMounted(refreshAll);
 </script>
 
 <template>
-  <div class="bg-s-bg p-8 space-y-8 h-full w-full flex-1 min-w-0 overflow-auto">
-    <header
-      class="flex flex-col md:flex-row md:items-start md:justify-between gap-4"
+  <div
+    class="bg-s-bg p-4 md:p-8 space-y-8 h-full w-full flex-1 min-w-0 overflow-auto"
+  >
+    <SynapsePageHeader
+      :title="t('SYNAPSEOS.METRICS.TITLE')"
+      :description="t('SYNAPSEOS.METRICS.SUBTITLE')"
+      :updated-at="store.lastUpdatedAt"
+      :refreshing="refreshing"
     >
-      <div class="flex flex-col gap-1">
-        <h1 class="text-2xl font-semibold text-s-primary">
-          {{ t('SYNAPSEOS.METRICS.TITLE') }}
-        </h1>
-        <p class="text-sm text-s-muted">
-          {{ t('SYNAPSEOS.METRICS.SUBTITLE') }}
-        </p>
-      </div>
-      <div class="flex items-center gap-3">
+      <template #actions>
         <div
           class="inline-flex rounded-lg border border-s-border bg-s-surface p-0.5"
           role="group"
+          :aria-label="t('SYNAPSEOS.METRICS.RANGE_LABEL')"
         >
           <button
             v-for="r in RANGE_OPTIONS"
             :key="r.key"
             type="button"
-            class="px-3 h-8 text-xs font-medium rounded-md transition-colors"
+            class="px-3 h-8 text-xs font-medium rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-s-focus"
             :class="[
               store.range === r.key
                 ? 'bg-s-brand-soft text-s-brand-text'
                 : 'text-s-secondary hover:bg-s-subtle',
             ]"
+            :aria-pressed="store.range === r.key"
             @click="selectRange(r.key)"
           >
             {{ t(r.labelKey) }}
@@ -183,15 +191,13 @@ onMounted(refreshAll);
           variant="outline"
           size="sm"
           icon="i-lucide-refresh-cw"
+          :loading="refreshing"
           @click="refreshAll"
         >
           {{ t('SYNAPSEOS.METRICS.REFRESH') }}
         </SynapseButton>
-        <span class="text-xs text-s-muted whitespace-nowrap">
-          {{ t('SYNAPSEOS.METRICS.LAST_UPDATED', { time: lastUpdatedLabel }) }}
-        </span>
-      </div>
-    </header>
+      </template>
+    </SynapsePageHeader>
 
     <!-- Empty state: nenhum AgentBot cadastrado pra essa conta -->
     <div
@@ -226,16 +232,20 @@ onMounted(refreshAll);
               <div class="flex items-center gap-3 min-w-0">
                 <span
                   class="inline-flex items-center justify-center size-10 rounded-xl shrink-0"
-                  :class="[
-                    `bg-s-${AGENT_CARDS[slug].tone}-soft`,
-                    `text-s-${AGENT_CARDS[slug].tone}-text`,
-                  ]"
+                  :class="TONE_CLASSES[AGENT_CARDS[slug].tone]"
                 >
                   <span class="size-5" :class="[AGENT_CARDS[slug].icon]" />
                 </span>
                 <div class="flex flex-col min-w-0">
-                  <span class="text-base font-semibold text-s-primary truncate">
-                    {{ agentDisplayName(slug) }}
+                  <span
+                    class="inline-flex items-center gap-2 text-base font-semibold text-s-primary min-w-0"
+                  >
+                    <span
+                      class="size-2 rounded-full shrink-0"
+                      :class="agentClasses({ squadronRole: slug }).bg"
+                      aria-hidden="true"
+                    />
+                    <span class="truncate">{{ agentDisplayName(slug) }}</span>
                   </span>
                   <span class="text-xs text-s-muted">
                     {{
@@ -258,9 +268,9 @@ onMounted(refreshAll);
               v-if="store.agents[slug].isLoading"
               class="flex flex-col gap-4"
             >
-              <div class="h-12 rounded bg-s-subtle animate-pulse" />
-              <div class="h-4 rounded bg-s-subtle animate-pulse w-3/4" />
-              <div class="h-4 rounded bg-s-subtle animate-pulse w-2/3" />
+              <SynapseSkeleton class="h-12 w-1/2" />
+              <SynapseSkeleton class="h-4 w-3/4" />
+              <SynapseSkeleton class="h-4 w-2/3" />
             </div>
 
             <!-- Error -->
@@ -281,7 +291,7 @@ onMounted(refreshAll);
                   {{ kpiLabel(slug, AGENT_CARDS[slug].hero.key) }}
                 </span>
                 <span
-                  class="font-synapse font-bold tracking-tight leading-none text-[2.75rem]"
+                  class="font-synapse-display font-semibold tracking-[-0.01em] leading-none tabular-nums text-[2.5rem]"
                   :class="[
                     isHighlightFormat(AGENT_CARDS[slug].hero.format)
                       ? 'text-s-brand'

@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
+import { useDocumentVisibility, useIntervalFn } from '@vueuse/core';
 /* global axios */
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
@@ -9,18 +10,23 @@ import SynapseCard from 'next/synapseos/SynapseCard.vue';
 import SynapseKpiCard from 'next/synapseos/SynapseKpiCard.vue';
 import SynapseStatusPill from 'next/synapseos/SynapseStatusPill.vue';
 import SynapseBadge from 'next/synapseos/SynapseBadge.vue';
-import SynapseInput from 'next/synapseos/SynapseInput.vue';
+import SynapseButton from 'next/synapseos/SynapseButton.vue';
+import SynapsePageHeader from 'next/synapseos/SynapsePageHeader.vue';
 import SynapseEmptyState from 'next/synapseos/SynapseEmptyState.vue';
 import AgentConversationsPanel from '../components/AgentConversationsPanel.vue';
+
+const POLL_MS = 15000;
 
 const { t } = useI18n();
 const route = useRoute();
 const agents = ref([]);
 const loading = ref(true);
+const refreshing = ref(false);
+const updatedAt = ref(null);
 const fetchError = ref(null);
-const pollTimer = ref(null);
 const searchQuery = ref('');
 const selectedAgent = ref(null);
+const conversationsPanel = ref(null);
 
 const availabilityTone = availability => {
   const map = { online: 'success', busy: 'warning', offline: 'neutral' };
@@ -41,28 +47,42 @@ const firstResponseClass = seconds => {
 };
 
 const fetchAgents = async () => {
-  const accountId = route.params.accountId;
+  refreshing.value = true;
   try {
     const { data } = await axios.get(
-      `/api/v1/accounts/${accountId}/synapseos/live_agents`
+      `/api/v1/accounts/${route.params.accountId}/synapseos/live_agents`
     );
-    agents.value = Array.isArray(data) ? data : [];
+    agents.value = data;
+    updatedAt.value = Date.now();
     fetchError.value = null;
   } catch (err) {
-    // Endpoint falhou (401/403/404/500/network). Sem try/catch o loading
-    // ficava eterno; agora registramos o erro e desligamos o spinner.
-    fetchError.value =
-      err?.response?.data?.message ||
-      err?.message ||
-      'Falha ao carregar agentes';
-    if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.error('[LiveAgents] fetch failed', err);
-    }
+    // Endpoint falhou (401/403/404/500/network): mostra o banner com retry.
+    fetchError.value = err?.response?.data?.message || err.message;
   } finally {
     loading.value = false;
+    refreshing.value = false;
   }
 };
+
+// CUSTOMIZAÇÃO_SYNAPSEOS: polling único da tela (lista + painel do agente
+// selecionado), pausado com a aba oculta.
+const refreshAll = () => {
+  fetchAgents();
+  conversationsPanel.value?.fetchConversations();
+};
+
+const { pause, resume } = useIntervalFn(refreshAll, POLL_MS);
+const visibility = useDocumentVisibility();
+watch(visibility, state => {
+  if (state === 'hidden') {
+    pause();
+    return;
+  }
+  refreshAll();
+  resume();
+});
+
+fetchAgents();
 
 const filteredAgents = computed(() => {
   if (!searchQuery.value.trim()) return agents.value;
@@ -144,44 +164,44 @@ const handleRowClick = event => {
 };
 
 const rowClass = data =>
-  selectedAgent.value?.id === data?.id ? 'bg-s-subtle' : null;
-
-onMounted(() => {
-  fetchAgents();
-  pollTimer.value = setInterval(fetchAgents, 15000);
-});
-
-onBeforeUnmount(() => {
-  if (pollTimer.value) clearInterval(pollTimer.value);
-});
+  selectedAgent.value?.id === data?.id ? 'bg-s-hover' : null;
 </script>
 
 <template>
   <div
     class="bg-s-bg p-4 sm:p-6 md:p-8 space-y-4 md:space-y-6 h-full w-full flex-1 min-w-0 overflow-auto"
   >
-    <header class="flex flex-col gap-1">
-      <h1 class="text-xl md:text-2xl font-semibold text-s-primary">
-        {{ t('SYNAPSEOS.LIVE_AGENTS.TITLE') }}
-      </h1>
-      <p class="text-sm text-s-muted">
-        {{ t('SYNAPSEOS.LIVE_AGENTS.SUBTITLE') }}
-      </p>
-    </header>
+    <SynapsePageHeader
+      :title="t('SYNAPSEOS.LIVE_AGENTS.TITLE')"
+      :description="t('SYNAPSEOS.LIVE_AGENTS.SUBTITLE')"
+      :updated-at="fetchError ? null : updatedAt"
+      :refreshing="refreshing"
+    />
 
     <div
       v-if="fetchError"
-      class="flex items-start gap-3 p-3 rounded-lg border border-s-error/30 bg-s-error-soft text-s-error-text text-sm"
+      role="alert"
+      class="flex flex-wrap items-center gap-3 px-4 py-3 rounded-lg border border-s-error/30 bg-s-error-soft text-s-error-text text-sm"
     >
-      <span class="i-lucide-alert-triangle size-4 mt-0.5 shrink-0" />
-      <div class="flex-1">
-        <strong class="font-semibold">Falha ao carregar agentes.</strong>
-        <p class="text-xs mt-0.5 opacity-80">{{ fetchError }}</p>
-      </div>
-      <button
-        class="i-lucide-refresh-cw size-4 shrink-0 hover:opacity-60"
-        @click="fetchAgents"
+      <span
+        class="i-lucide-triangle-alert size-4 shrink-0"
+        aria-hidden="true"
       />
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold">
+          {{ t('SYNAPSEOS.LIVE_AGENTS.ERROR.TITLE') }}
+        </p>
+        <p class="text-xs">{{ fetchError }}</p>
+      </div>
+      <SynapseButton
+        variant="outline"
+        size="sm"
+        icon="i-lucide-refresh-cw"
+        :loading="refreshing"
+        @click="fetchAgents"
+      >
+        {{ t('SYNAPSEOS.LIVE_AGENTS.ERROR.RETRY') }}
+      </SynapseButton>
     </div>
 
     <section
@@ -194,18 +214,26 @@ onBeforeUnmount(() => {
         :value="String(card.value)"
         :icon="card.icon"
         :tone="card.tone"
+        :loading="loading"
       />
     </section>
 
     <div
       class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4"
     >
-      <div class="w-full sm:w-72">
-        <SynapseInput
-          id="live-agents-search"
+      <!-- Input próprio (reset-base): o estilo global de input do Chatwoot
+           sobrescrevia o recuo do ícone no SynapseInput. -->
+      <div class="relative w-full sm:w-72">
+        <span
+          class="i-lucide-search absolute left-3 top-1/2 -translate-y-1/2 size-4 text-s-muted pointer-events-none"
+          aria-hidden="true"
+        />
+        <input
           v-model="searchQuery"
-          icon-leading="i-lucide-search"
+          type="search"
+          class="reset-base w-full h-10 pl-9 pr-3 rounded-lg bg-s-surface border border-s-border text-sm text-s-primary placeholder:text-s-muted hover:border-s-border-strong focus:outline-none focus:ring-2 focus:ring-s-focus focus:border-s-brand"
           :placeholder="t('SYNAPSEOS.LIVE_AGENTS.SEARCH_PLACEHOLDER')"
+          :aria-label="t('SYNAPSEOS.LIVE_AGENTS.SEARCH_LABEL')"
         />
       </div>
       <span class="text-xs text-s-muted">
@@ -220,23 +248,17 @@ onBeforeUnmount(() => {
           :loading="loading"
           data-key="id"
           removable-sort
+          row-hover
           :row-class="rowClass"
           :pt="{
             table: { class: 'min-w-full' },
-            bodyRow: {
-              class:
-                'cursor-pointer hover:bg-s-subtle transition-colors border-b border-s-border-subtle',
-            },
-            headerRow: { class: 'bg-s-subtle' },
+            bodyRow: { class: 'cursor-pointer transition-colors' },
             headerCell: {
               class:
-                'text-xs font-semibold uppercase tracking-wide text-s-secondary !bg-s-subtle !border-b !border-s-border px-4 py-3 whitespace-nowrap',
+                'text-xs font-semibold uppercase tracking-wide px-4 py-3 whitespace-nowrap',
             },
-            bodyCell: {
-              class: 'px-4 py-3 text-sm text-s-primary align-middle',
-            },
+            bodyCell: { class: 'px-4 py-3 text-sm align-middle' },
             emptyMessage: { class: 'text-center py-8 text-sm text-s-muted' },
-            loadingOverlay: { class: '!bg-s-surface/70' },
           }"
           class="w-full"
           @row-click="handleRowClick"
@@ -269,12 +291,12 @@ onBeforeUnmount(() => {
                   {{ data.name?.[0]?.toUpperCase() || '?' }}
                 </div>
                 <div class="flex flex-col min-w-0">
-                  <span class="text-sm font-semibold !text-s-primary truncate">{{
-                    data.name
-                  }}</span>
-                  <span class="text-xs !text-s-secondary truncate">{{
-                    data.email
-                  }}</span>
+                  <span class="text-sm font-semibold text-s-primary truncate">
+                    {{ data.name }}
+                  </span>
+                  <span class="text-xs text-s-secondary truncate">
+                    {{ data.email }}
+                  </span>
                 </div>
               </div>
             </template>
@@ -314,10 +336,8 @@ onBeforeUnmount(() => {
           >
             <template #body="{ data }">
               <span
-                :class="[
-                  'text-sm',
-                  firstResponseClass(data.avg_first_response_seconds),
-                ]"
+                class="text-sm"
+                :class="firstResponseClass(data.avg_first_response_seconds)"
               >
                 {{ formatSeconds(data.avg_first_response_seconds) }}
               </span>
@@ -333,7 +353,11 @@ onBeforeUnmount(() => {
               <SynapseBadge
                 :tone="data.role === 'administrator' ? 'brand' : 'neutral'"
               >
-                <span class="capitalize">{{ data.role }}</span>
+                {{
+                  data.role === 'administrator'
+                    ? t('SYNAPSEOS.LIVE_AGENTS.ROLE.ADMINISTRATOR')
+                    : t('SYNAPSEOS.LIVE_AGENTS.ROLE.AGENT')
+                }}
               </SynapseBadge>
             </template>
           </Column>
@@ -342,6 +366,7 @@ onBeforeUnmount(() => {
 
       <div v-if="selectedAgent" class="min-w-0">
         <AgentConversationsPanel
+          ref="conversationsPanel"
           :agent="selectedAgent"
           @close="selectedAgent = null"
         />

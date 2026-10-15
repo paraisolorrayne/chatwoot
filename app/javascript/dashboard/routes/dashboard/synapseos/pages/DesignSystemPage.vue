@@ -1,323 +1,396 @@
 <script setup>
-import { ref } from 'vue';
-import SynapseButton from 'next/synapseos/SynapseButton.vue';
-import SynapseCard from 'next/synapseos/SynapseCard.vue';
+// CUSTOMIZAÇÃO_SYNAPSEOS — vitrine do design system Fykos (admin-only).
+// Swatches usam as classes `bg-s-*` (sem hex), então acompanham os tokens de
+// `_synapseos_tokens.scss` e o tema claro/escuro. Classes literais para o
+// Tailwind gerar.
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import SynapsePageHeader from 'next/synapseos/SynapsePageHeader.vue';
 import SynapseKpiCard from 'next/synapseos/SynapseKpiCard.vue';
-import SynapseStatusPill from 'next/synapseos/SynapseStatusPill.vue';
-import SynapseBadge from 'next/synapseos/SynapseBadge.vue';
-import SynapseInput from 'next/synapseos/SynapseInput.vue';
+import SynapseStatusBadge from 'next/synapseos/SynapseStatusBadge.vue';
+import SynapseSkeleton from 'next/synapseos/SynapseSkeleton.vue';
+import SynapseButton from 'next/synapseos/SynapseButton.vue';
+import { agentClasses } from 'dashboard/helper/synapseos/agentIdentity';
+import { useDashboardFormat } from '../components/dashboard/useDashboardFormat';
 
-const textField = ref('');
-const emailField = ref('john@acme.inc');
-const errorField = ref('abc');
+const { t } = useI18n();
+const { formatNumber, formatPercent, formatCurrency } = useDashboardFormat();
 
-// Paleta Dexi — navy institucional + cyan técnico + neutros frios.
-const tokens = [
-  { name: 's-bg', hex: '#F6F8FB', role: 'Background da aplicação' },
-  { name: 's-surface', hex: '#FFFFFF', role: 'Cards, painéis, composer' },
+const now = Date.now();
+
+const tokenName = cls => cls.replace(/^(bg|text)-/, '');
+const swatches = classes => classes.map(cls => ({ cls, name: tokenName(cls) }));
+
+const agentSwatch = (slug, label) => {
+  const cls = agentClasses({ squadronRole: slug }).bg;
+  return { cls, name: tokenName(cls), label };
+};
+
+const colorGroups = computed(() => [
   {
-    name: 's-sidebar',
-    hex: '#0B1F3A',
-    role: 'Sidebar navy institucional Dexi',
-  },
-  { name: 's-subtle', hex: '#EEF2F7', role: 'Hover neutro, blocos internos' },
-  { name: 's-border', hex: '#D7DFE8', role: 'Bordas e divisórias' },
-  { name: 's-border-strong', hex: '#B8C4D4', role: 'Bordas em contexto denso' },
-  { name: 's-primary', hex: '#142033', role: 'Texto principal, KPIs' },
-  { name: 's-secondary', hex: '#425466', role: 'Labels, metadados' },
-  { name: 's-muted', hex: '#5B6B7A', role: 'Hint / placeholder (WCAG AA)' },
-  { name: 's-on-dark', hex: '#FFFFFF', role: 'Texto sobre sidebar navy' },
-  { name: 's-on-dark-muted', hex: '#B8C4D4', role: 'Texto muted na sidebar' },
-  { name: 's-brand', hex: '#0B1F3A', role: 'Navy institucional Dexi' },
-  { name: 's-brand-800', hex: '#123056', role: 'Navy hover / ativo escuro' },
-  { name: 's-brand-700', hex: '#1A4272', role: 'Navy foco secundário' },
-  {
-    name: 's-brand-cta',
-    hex: '#0B1F3A',
-    role: 'Botão primário (AAA sobre branco)',
-  },
-  {
-    name: 's-brand-text',
-    hex: '#0E7490',
-    role: 'Texto brand acessível (cyan-700)',
+    key: 'surfaces',
+    title: t('SYNAPSEOS.DESIGN_SYSTEM.GROUPS.SURFACES'),
+    swatches: swatches([
+      'bg-s-bg',
+      'bg-s-surface',
+      'bg-s-surface-raised',
+      'bg-s-subtle',
+      'bg-s-hover',
+      'bg-s-sidebar',
+      'bg-s-border-subtle',
+      'bg-s-border',
+      'bg-s-border-strong',
+    ]),
   },
   {
-    name: 's-accent',
-    hex: '#00B8D9',
-    role: 'Cyan técnico: foco, borda ativa, ícone',
+    key: 'text',
+    title: t('SYNAPSEOS.DESIGN_SYSTEM.GROUPS.TEXT'),
+    text: true,
+    swatches: swatches([
+      'text-s-primary',
+      'text-s-secondary',
+      'text-s-muted',
+      'text-s-disabled',
+      'text-s-brand-text',
+    ]),
   },
-  { name: 's-accent-700', hex: '#0E7490', role: 'Cyan escuro: texto pequeno' },
-  { name: 's-accent-100', hex: '#E6F7FB', role: 'Cyan claro: bg badge/chip' },
-  { name: 's-success', hex: '#1D7F56', role: 'Sucesso' },
-  { name: 's-warning', hex: '#9A6700', role: 'Alerta' },
-  { name: 's-error', hex: '#C53030', role: 'Erro / destrutivo' },
-  { name: 's-info', hex: '#0E7490', role: 'Informativo' },
+  {
+    key: 'brand',
+    title: t('SYNAPSEOS.DESIGN_SYSTEM.GROUPS.BRAND'),
+    swatches: swatches([
+      'bg-s-brand-cta',
+      'bg-s-brand-cta-hover',
+      'bg-s-on-primary',
+      'bg-s-brand',
+      'bg-s-brand-700',
+      'bg-s-brand-900',
+      'bg-s-brand-soft',
+      'bg-s-brand-soft-hover',
+      'bg-s-accent',
+      'bg-s-focus',
+    ]),
+  },
+  {
+    key: 'states',
+    title: t('SYNAPSEOS.DESIGN_SYSTEM.GROUPS.STATES'),
+    swatches: swatches([
+      'bg-s-success',
+      'bg-s-success-soft',
+      'bg-s-success-text',
+      'bg-s-warning',
+      'bg-s-warning-soft',
+      'bg-s-warning-text',
+      'bg-s-error',
+      'bg-s-error-soft',
+      'bg-s-error-text',
+      'bg-s-info',
+      'bg-s-info-soft',
+      'bg-s-info-text',
+      'bg-s-sombra',
+      'bg-s-sombra-soft',
+      'bg-s-sombra-text',
+    ]),
+  },
+  {
+    key: 'chart',
+    title: t('SYNAPSEOS.DESIGN_SYSTEM.GROUPS.CHART'),
+    swatches: [
+      ['bg-s-chart-1', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_1')],
+      ['bg-s-chart-2', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_2')],
+      ['bg-s-chart-3', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_3')],
+      ['bg-s-chart-4', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_4')],
+      ['bg-s-chart-5', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_5')],
+      ['bg-s-chart-6', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_6')],
+      ['bg-s-chart-7', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_7')],
+      ['bg-s-chart-8', t('SYNAPSEOS.DESIGN_SYSTEM.CHART_ROLES.CHART_8')],
+    ].map(([cls, label]) => ({ cls, name: tokenName(cls), label })),
+  },
+  {
+    key: 'agents',
+    title: t('SYNAPSEOS.DESIGN_SYSTEM.GROUPS.AGENTS'),
+    swatches: [
+      agentSwatch('natalia', t('SYNAPSEOS.METRICS.AGENTS.NATALIA.NAME')),
+      agentSwatch('alice', t('SYNAPSEOS.METRICS.AGENTS.ALICE.NAME')),
+      agentSwatch('iza', t('SYNAPSEOS.METRICS.AGENTS.IZA.NAME')),
+      agentSwatch('luis', t('SYNAPSEOS.METRICS.AGENTS.LUIS.NAME')),
+      agentSwatch('otto', t('SYNAPSEOS.METRICS.AGENTS.OTTO.NAME')),
+      agentSwatch('fernanda', t('SYNAPSEOS.METRICS.AGENTS.FERNANDA.NAME')),
+      agentSwatch('angela', t('SYNAPSEOS.METRICS.AGENTS.ANGELA.NAME')),
+      agentSwatch('vitor', t('SYNAPSEOS.METRICS.AGENTS.VITOR.NAME')),
+    ],
+  },
+]);
+
+const fonts = computed(() => [
+  {
+    key: 'display',
+    cls: 'font-synapse-display text-2xl font-semibold',
+    label: t('SYNAPSEOS.DESIGN_SYSTEM.FONTS.DISPLAY'),
+  },
+  {
+    key: 'sans',
+    cls: 'font-sans text-base',
+    label: t('SYNAPSEOS.DESIGN_SYSTEM.FONTS.SANS'),
+  },
+  {
+    key: 'mono',
+    cls: 'font-mono text-sm',
+    label: t('SYNAPSEOS.DESIGN_SYSTEM.FONTS.MONO'),
+  },
+]);
+
+const kpiExamples = computed(() => [
+  {
+    key: 'up',
+    label: t('SYNAPSEOS.DASHBOARD.KPI.DEALS_WON'),
+    value: formatNumber(42),
+    icon: 'i-lucide-trophy',
+    tone: 'success',
+    delta: 12.5,
+    sparkline: [3, 5, 4, 6, 8, 7, 9],
+  },
+  {
+    key: 'down',
+    label: t('SYNAPSEOS.DASHBOARD.KPI.REVENUE'),
+    value: formatCurrency(1240000, { compact: true }),
+    icon: 'i-lucide-banknote',
+    tone: 'success',
+    delta: -8.3,
+  },
+  {
+    key: 'positive-down',
+    label: t('SYNAPSEOS.DASHBOARD.KPI.DEALS_LOST'),
+    value: formatNumber(7),
+    icon: 'i-lucide-circle-x',
+    tone: 'neutral',
+    delta: -15,
+    positiveIs: 'down',
+  },
+  {
+    key: 'pp',
+    label: t('SYNAPSEOS.DASHBOARD.KPI.CONVERSION_RATE'),
+    value: formatPercent(12.5),
+    icon: 'i-lucide-filter',
+    tone: 'brand',
+    delta: 1.8,
+    deltaUnit: 'pp',
+    hint: t('SYNAPSEOS.DASHBOARD.KPI.CONVERSION_RATE_HINT'),
+  },
+  {
+    key: 'loading',
+    label: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_PERIOD'),
+    icon: 'i-lucide-send',
+    tone: 'neutral',
+    loading: true,
+  },
+]);
+
+// Um estado por variante do StatusBadge (+ estado ausente, que vira "—").
+const STATUS_EXAMPLES = [
+  'lead_novo',
+  'em_atendimento',
+  'negociacao',
+  'venda',
+  'encerrado',
+  'sombra',
+  'sem_resposta',
+  '',
 ];
 </script>
 
 <template>
   <div
-    class="bg-s-bg min-h-full w-full flex-1 min-w-0 p-8 space-y-10 overflow-auto"
+    class="bg-s-bg min-h-full w-full flex-1 min-w-0 p-4 md:p-8 flex flex-col gap-10 overflow-auto"
   >
-    <header class="flex flex-col gap-2">
-      <h1 class="text-3xl font-bold tracking-tight text-s-primary">
-        Design System
-      </h1>
-      <p class="text-sm text-s-muted">
-        Preview dos primitivos Synapse OS usados pelos sprints de refactor.
-      </p>
-    </header>
+    <SynapsePageHeader
+      :title="t('SYNAPSEOS.DESIGN_SYSTEM.TITLE')"
+      :description="t('SYNAPSEOS.DESIGN_SYSTEM.DESCRIPTION')"
+    />
 
-    <section>
-      <h2
-        class="text-sm font-semibold text-s-secondary uppercase tracking-wider mb-4"
-      >
-        Color tokens
+    <section class="flex flex-col gap-6">
+      <h2 class="font-synapse-display text-lg font-semibold text-s-primary">
+        {{ t('SYNAPSEOS.DESIGN_SYSTEM.SECTIONS.COLORS') }}
       </h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div
+        v-for="group in colorGroups"
+        :key="group.key"
+        class="flex flex-col gap-3"
+      >
+        <h3 class="text-xs font-medium uppercase tracking-wider text-s-muted">
+          {{ group.title }}
+        </h3>
         <div
-          v-for="t in tokens"
-          :key="t.name"
-          class="bg-s-surface border border-s-border rounded-xl p-3 flex items-center gap-3"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3"
         >
-          <span
-            class="size-10 rounded-lg border border-s-border shrink-0"
-            :style="{ backgroundColor: t.hex }"
-          />
-          <div class="flex flex-col min-w-0">
-            <span class="text-xs font-medium text-s-primary truncate">{{
-              t.name
-            }}</span>
-            <span class="text-[11px] text-s-muted font-mono">{{ t.hex }}</span>
-            <span class="text-[11px] text-s-muted truncate">{{ t.role }}</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2
-        class="text-sm font-semibold text-s-secondary uppercase tracking-wider mb-4"
-      >
-        Typography
-      </h2>
-      <SynapseCard padding="loose">
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-s-muted font-mono">display · 48/700</span>
-            <span class="text-5xl font-bold tracking-tight text-s-primary">R$ 125.750</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-s-muted font-mono">h1 · 30/700</span>
-            <span class="text-3xl font-bold tracking-tight text-s-primary">Executive Dashboard</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-s-muted font-mono">h2 · 24/600</span>
-            <span class="text-2xl font-semibold text-s-primary">Pipeline de vendas</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-s-muted font-mono">h3 · 18/600</span>
-            <span class="text-lg font-semibold text-s-primary">Atividade recente</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-s-muted font-mono">body · 14/400</span>
-            <span class="text-sm text-s-secondary">Plataforma de atendimento omnichannel para o mercado BR.</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-s-muted font-mono">caption · 12/500</span>
-            <span class="text-xs font-medium text-s-muted">Última atualização: há 3 min</span>
-          </div>
-          <div class="flex flex-col gap-1">
-            <span class="text-xs text-s-muted font-mono">overline · 11/600 uppercase</span>
+          <div
+            v-for="swatch in group.swatches"
+            :key="swatch.cls"
+            class="flex flex-col gap-1.5 min-w-0"
+          >
             <span
-              class="text-[11px] font-semibold uppercase tracking-wider text-s-muted"
+              v-if="group.text"
+              class="h-12 rounded-lg border border-s-border bg-s-surface flex items-center justify-center font-synapse-display text-xl font-semibold"
+              :class="swatch.cls"
             >
-              Receita mensal
+              {{ t('SYNAPSEOS.DESIGN_SYSTEM.TEXT_SAMPLE') }}
+            </span>
+            <span
+              v-else
+              class="h-12 rounded-lg border border-s-border"
+              :class="swatch.cls"
+            />
+            <span class="text-xs font-mono text-s-primary truncate">
+              {{ swatch.name }}
+            </span>
+            <span v-if="swatch.label" class="text-xs text-s-muted truncate">
+              {{ swatch.label }}
             </span>
           </div>
         </div>
-      </SynapseCard>
-    </section>
-
-    <section>
-      <h2
-        class="text-sm font-semibold text-s-secondary uppercase tracking-wider mb-4"
-      >
-        Buttons
-      </h2>
-      <SynapseCard>
-        <div class="flex flex-col gap-4">
-          <div class="flex flex-wrap gap-3">
-            <SynapseButton variant="primary" icon="i-lucide-plus">
-              Novo Lead
-            </SynapseButton>
-            <SynapseButton variant="outline">Export</SynapseButton>
-            <SynapseButton variant="ghost" icon="i-lucide-settings">
-              Config
-            </SynapseButton>
-            <SynapseButton variant="danger" icon="i-lucide-trash-2">
-              Excluir
-            </SynapseButton>
-            <SynapseButton variant="primary" loading>Salvando…</SynapseButton>
-            <SynapseButton variant="primary" disabled>
-              Desabilitado
-            </SynapseButton>
-          </div>
-          <div class="flex items-end flex-wrap gap-3">
-            <SynapseButton size="sm">Small</SynapseButton>
-            <SynapseButton size="md">Medium</SynapseButton>
-            <SynapseButton size="lg">Large</SynapseButton>
-          </div>
-        </div>
-      </SynapseCard>
-    </section>
-
-    <section>
-      <h2
-        class="text-sm font-semibold text-s-secondary uppercase tracking-wider mb-4"
-      >
-        KPI cards
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <SynapseKpiCard
-          label="Leads novos"
-          value="328"
-          icon="i-lucide-target"
-          tone="brand"
-          :delta="15"
-        />
-        <SynapseKpiCard
-          label="Win rate"
-          value="76%"
-          icon="i-lucide-trophy"
-          tone="success"
-          :delta="8.2"
-        />
-        <SynapseKpiCard
-          label="Receita (30d)"
-          value="R$ 125.750"
-          icon="i-lucide-dollar-sign"
-          tone="success"
-          :delta="21"
-        />
-        <SynapseKpiCard
-          label="Deals perdidos"
-          value="12"
-          icon="i-lucide-trending-down"
-          tone="error"
-          :delta="-3.4"
-        />
       </div>
     </section>
 
-    <section>
-      <h2
-        class="text-sm font-semibold text-s-secondary uppercase tracking-wider mb-4"
-      >
-        Status pills
+    <section class="flex flex-col gap-4">
+      <h2 class="font-synapse-display text-lg font-semibold text-s-primary">
+        {{ t('SYNAPSEOS.DESIGN_SYSTEM.SECTIONS.TYPOGRAPHY') }}
       </h2>
-      <SynapseCard>
-        <div class="flex flex-wrap gap-2">
-          <SynapseStatusPill tone="success">Ganho</SynapseStatusPill>
-          <SynapseStatusPill tone="warning">Aguardando</SynapseStatusPill>
-          <SynapseStatusPill tone="error">Perdido</SynapseStatusPill>
-          <SynapseStatusPill tone="info">Em negociação</SynapseStatusPill>
-          <SynapseStatusPill tone="brand">Qualificado</SynapseStatusPill>
-          <SynapseStatusPill tone="neutral">Em pausa</SynapseStatusPill>
+      <div
+        class="bg-s-surface border border-s-border rounded-lg p-4 md:p-6 flex flex-col gap-5"
+      >
+        <div v-for="font in fonts" :key="font.key" class="flex flex-col gap-1">
+          <span class="text-xs text-s-muted">{{ font.label }}</span>
+          <span class="text-s-primary" :class="font.cls">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.TYPE_SAMPLE') }}
+          </span>
         </div>
-        <div class="mt-3 flex flex-wrap gap-2">
-          <SynapseBadge tone="brand">Novo</SynapseBadge>
-          <SynapseBadge tone="success">Ativo</SynapseBadge>
-          <SynapseBadge tone="warning">Expira em 3d</SynapseBadge>
-          <SynapseBadge tone="error">Falhou</SynapseBadge>
-          <SynapseBadge tone="neutral">Arquivado</SynapseBadge>
-        </div>
-      </SynapseCard>
+      </div>
     </section>
 
-    <section>
-      <h2
-        class="text-sm font-semibold text-s-secondary uppercase tracking-wider mb-4"
-      >
-        Inputs
+    <section class="flex flex-col gap-4">
+      <h2 class="font-synapse-display text-lg font-semibold text-s-primary">
+        {{ t('SYNAPSEOS.DESIGN_SYSTEM.SECTIONS.PAGE_HEADER') }}
       </h2>
-      <SynapseCard>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <SynapseInput
-            id="name-field"
-            v-model="textField"
-            label="Nome"
-            placeholder="Digite seu nome completo"
-            hint="Como aparecerá nos e-mails"
-          />
-          <SynapseInput
-            id="email-field"
-            v-model="emailField"
-            label="E-mail"
-            type="email"
-            icon-leading="i-lucide-mail"
-          />
-          <SynapseInput
-            id="cep-field"
-            v-model="errorField"
-            label="CEP"
-            error="CEP inválido, verifique o formato"
-          />
-          <SynapseInput
-            id="disabled-field"
-            label="Desabilitado"
-            placeholder="Campo bloqueado"
-            disabled
-          />
-        </div>
-      </SynapseCard>
-    </section>
-
-    <section>
-      <h2
-        class="text-sm font-semibold text-s-secondary uppercase tracking-wider mb-4"
+      <div
+        class="bg-s-surface border border-s-border rounded-lg p-4 md:p-6 flex flex-col gap-6"
       >
-        Card anatomy
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SynapseCard
-          title="Card com título"
-          subtitle="E um subtítulo descritivo"
+        <SynapsePageHeader
+          :title="t('SYNAPSEOS.DESIGN_SYSTEM.EXAMPLES.PAGE_TITLE')"
+          :description="t('SYNAPSEOS.DESIGN_SYSTEM.EXAMPLES.PAGE_DESCRIPTION')"
+          :updated-at="now"
         >
           <template #actions>
-            <SynapseButton
-              variant="ghost"
-              size="sm"
-              icon="i-lucide-more-horizontal"
-            />
+            <SynapseButton variant="outline" size="sm" icon="i-lucide-download">
+              {{ t('SYNAPSEOS.DESIGN_SYSTEM.EXAMPLES.ACTION') }}
+            </SynapseButton>
           </template>
-          <p class="text-sm text-s-secondary leading-relaxed">
-            Padding default (p-6), border-s-border, rounded-2xl, shadow-s-sm →
-            hover shadow-s-md. Usado em toda tela de entrada (Dashboard,
-            Settings, Reports).
-          </p>
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <SynapseButton variant="outline" size="sm">
-                Cancelar
-              </SynapseButton>
-              <SynapseButton size="sm">Salvar</SynapseButton>
-            </div>
-          </template>
-        </SynapseCard>
-        <SynapseCard interactive padding="tight">
-          <div class="flex items-center gap-3">
-            <span
-              class="inline-flex size-10 rounded-lg bg-s-brand-soft items-center justify-center"
-            >
-              <span class="i-lucide-zap size-5 text-s-brand" />
-            </span>
-            <div class="flex flex-col">
-              <span class="text-sm font-semibold text-s-primary">Card interativo</span>
-              <span class="text-xs text-s-muted">padding tight + hover shadow</span>
-            </div>
-          </div>
-        </SynapseCard>
+        </SynapsePageHeader>
+        <SynapsePageHeader
+          :title="t('SYNAPSEOS.DESIGN_SYSTEM.EXAMPLES.PAGE_TITLE')"
+          :description="t('SYNAPSEOS.DESIGN_SYSTEM.EXAMPLES.PAGE_DESCRIPTION')"
+          :updated-at="now"
+          refreshing
+        />
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="font-synapse-display text-lg font-semibold text-s-primary">
+        {{ t('SYNAPSEOS.DESIGN_SYSTEM.SECTIONS.KPI_CARD') }}
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+        <SynapseKpiCard
+          v-for="kpi in kpiExamples"
+          :key="kpi.key"
+          :label="kpi.label"
+          :value="kpi.value"
+          :icon="kpi.icon"
+          :tone="kpi.tone"
+          :delta="kpi.delta ?? null"
+          :delta-unit="kpi.deltaUnit"
+          :positive-is="kpi.positiveIs"
+          :hint="kpi.hint"
+          :sparkline="kpi.sparkline"
+          :loading="kpi.loading"
+        />
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="font-synapse-display text-lg font-semibold text-s-primary">
+        {{ t('SYNAPSEOS.DESIGN_SYSTEM.SECTIONS.STATUS_BADGE') }}
+      </h2>
+      <div
+        class="bg-s-surface border border-s-border rounded-lg p-4 md:p-6 flex flex-col gap-3"
+      >
+        <div class="flex flex-wrap gap-2">
+          <SynapseStatusBadge
+            v-for="status in STATUS_EXAMPLES"
+            :key="status"
+            :status="status"
+          />
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <SynapseStatusBadge
+            v-for="status in STATUS_EXAMPLES"
+            :key="status"
+            :status="status"
+            size="sm"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="font-synapse-display text-lg font-semibold text-s-primary">
+        {{ t('SYNAPSEOS.DESIGN_SYSTEM.SECTIONS.SKELETON') }}
+      </h2>
+      <div
+        class="bg-s-surface border border-s-border rounded-lg p-4 md:p-6 flex flex-col gap-3"
+      >
+        <SynapseSkeleton class="h-8 w-32" />
+        <SynapseSkeleton class="h-4 w-3/4" />
+        <SynapseSkeleton class="h-4 w-1/2" />
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <h2 class="font-synapse-display text-lg font-semibold text-s-primary">
+        {{ t('SYNAPSEOS.DESIGN_SYSTEM.SECTIONS.BUTTONS') }}
+      </h2>
+      <div
+        class="bg-s-surface border border-s-border rounded-lg p-4 md:p-6 flex flex-col gap-4"
+      >
+        <div class="flex flex-wrap gap-3">
+          <SynapseButton variant="primary" icon="i-lucide-plus">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.PRIMARY') }}
+          </SynapseButton>
+          <SynapseButton variant="outline">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.OUTLINE') }}
+          </SynapseButton>
+          <SynapseButton variant="ghost" icon="i-lucide-settings">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.GHOST') }}
+          </SynapseButton>
+          <SynapseButton variant="danger" icon="i-lucide-trash-2">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.DANGER') }}
+          </SynapseButton>
+          <SynapseButton variant="primary" loading>
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.LOADING') }}
+          </SynapseButton>
+          <SynapseButton variant="primary" disabled>
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.DISABLED') }}
+          </SynapseButton>
+        </div>
+        <div class="flex items-end flex-wrap gap-3">
+          <SynapseButton size="sm">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.SMALL') }}
+          </SynapseButton>
+          <SynapseButton size="md">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.MEDIUM') }}
+          </SynapseButton>
+          <SynapseButton size="lg">
+            {{ t('SYNAPSEOS.DESIGN_SYSTEM.BUTTONS.LARGE') }}
+          </SynapseButton>
+        </div>
       </div>
     </section>
   </div>
