@@ -101,7 +101,7 @@ const STYLE_CONFIG = {
   colors: {
     blue: {
       solid:
-        'bg-s-brand text-white hover:enabled:brightness-110 focus-visible:brightness-110 outline-transparent',
+        'bg-s-brand-cta text-s-on-primary hover:enabled:bg-s-brand-cta-hover focus-visible:bg-s-brand-cta-hover outline-transparent',
       faded:
         'bg-s-brand/10 text-s-brand-text hover:enabled:bg-s-brand/20 focus-visible:bg-s-brand/20 outline-transparent',
       outline: 'text-s-brand-text outline-s-brand',
@@ -111,7 +111,7 @@ const STYLE_CONFIG = {
     },
     ruby: {
       solid:
-        'bg-s-error text-white hover:enabled:bg-s-error focus-visible:bg-s-error outline-transparent',
+        'bg-s-error text-s-inverse hover:enabled:brightness-110 focus-visible:brightness-110 outline-transparent',
       faded:
         'bg-s-error/10 text-s-error-text hover:enabled:bg-s-error/20 focus-visible:bg-s-error/20 outline-transparent',
       outline:
@@ -122,7 +122,7 @@ const STYLE_CONFIG = {
     },
     amber: {
       solid:
-        'bg-s-warning text-white hover:enabled:bg-s-warning focus-visible:bg-s-warning outline-transparent',
+        'bg-s-warning-text text-s-inverse hover:enabled:brightness-110 focus-visible:brightness-110 outline-transparent',
       faded:
         'bg-s-warning/10 text-s-primary hover:enabled:bg-s-warning/20 focus-visible:bg-s-warning/20 outline-transparent',
       outline:
@@ -144,7 +144,7 @@ const STYLE_CONFIG = {
     },
     teal: {
       solid:
-        'bg-s-success text-white hover:enabled:bg-s-success focus-visible:bg-s-success outline-transparent',
+        'bg-s-success-text text-s-inverse hover:enabled:brightness-110 focus-visible:brightness-110 outline-transparent',
       faded:
         'bg-s-success/10 text-s-success-text hover:enabled:bg-s-success/20 focus-visible:bg-s-success/20 outline-transparent',
       outline:

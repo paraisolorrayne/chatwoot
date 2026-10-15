@@ -3,6 +3,8 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 @import 'shared/assets/fonts/widget_fonts';
+// CUSTOMIZAÇÃO_SYNAPSEOS — o widget usa classes s-*; sem os tokens as cores ficam indefinidas.
+@import 'dashboard/assets/scss/synapseos_tokens';
 @import 'views/conversation';
 
 html,

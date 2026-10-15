@@ -1,5 +1,5 @@
 <script setup>
-import { h, ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { provideSidebarContext, useSidebarResize } from './provider';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useKbd } from 'dashboard/composables/utils/useKbd';
@@ -511,7 +511,7 @@ const menuItems = computed(() => {
       closeMobileSidebar,
       { ignore: ['#mobile-sidebar-launcher'] },
     ]"
-    class="bg-s-sidebar flex flex-col text-sm pb-px fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 w-[240px] md:w-auto md:relative md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:translate-x-0 ltr:border-r rtl:border-l border-s-brand-800"
+    class="bg-s-sidebar flex flex-col text-sm pb-px fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 w-[240px] md:w-auto md:relative md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:translate-x-0 ltr:border-r rtl:border-l border-s-border"
     :class="[
       {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
@@ -544,7 +544,7 @@ const menuItems = computed(() => {
           <div class="grid flex-shrink-0 place-content-center size-6">
             <Logo class="size-4" />
           </div>
-          <div class="flex-shrink-0 w-px h-3 bg-white/10" />
+          <div class="flex-shrink-0 w-px h-3 bg-s-border" />
           <SidebarAccountSwitcher
             class="flex-grow -mx-1 min-w-0"
             @show-create-account-modal="emit('showCreateAccountModal')"
@@ -558,7 +558,7 @@ const menuItems = computed(() => {
         <RouterLink
           v-if="!isEffectivelyCollapsed"
           :to="{ name: 'search' }"
-          class="flex gap-2 items-center px-3 w-full h-9 rounded-lg border border-white/10 bg-white/[0.06] text-s-on-dark-muted hover:bg-white/10 hover:text-s-on-dark transition-colors"
+          class="flex gap-2 items-center px-3 w-full h-9 rounded-lg border border-s-border bg-s-subtle text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark transition-colors"
         >
           <span class="flex-shrink-0 i-lucide-search size-4" />
           <span class="flex-grow text-start text-sm">
@@ -573,7 +573,7 @@ const menuItems = computed(() => {
         <RouterLink
           v-else
           :to="{ name: 'search' }"
-          class="flex items-center justify-center size-9 rounded-lg border border-white/10 bg-white/[0.06] text-s-on-dark-muted hover:bg-white/10 hover:text-s-on-dark transition-colors"
+          class="flex items-center justify-center size-9 rounded-lg border border-s-border bg-s-subtle text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark transition-colors"
           :title="t('COMBOBOX.SEARCH_PLACEHOLDER')"
         >
           <span class="i-lucide-search size-4" />
@@ -587,9 +587,9 @@ const menuItems = computed(() => {
               size="sm"
               :class="[
                 isEffectivelyCollapsed
-                  ? '!size-9 !outline-white/10 !text-s-on-dark-muted !bg-white/[0.06] hover:!bg-white/10 hover:!text-s-on-dark'
-                  : '!h-9 !outline-white/10 !text-s-on-dark-muted !bg-white/[0.06] hover:!bg-white/10 hover:!text-s-on-dark',
-                { '!bg-white/10 !text-s-on-dark': isOpen },
+                  ? '!size-9 !outline-s-border !text-s-on-dark-muted !bg-s-subtle hover:!bg-s-nav-hover hover:!text-s-on-dark'
+                  : '!h-9 !outline-s-border !text-s-on-dark-muted !bg-s-subtle hover:!bg-s-nav-hover hover:!text-s-on-dark',
+                { '!bg-s-nav-hover !text-s-on-dark': isOpen },
               ]"
               @click="onComposeOpen(toggle)"
             />
@@ -636,18 +636,28 @@ const menuItems = computed(() => {
         v-if="isAdmin"
         type="button"
         :title="t('SIDEBAR.SYNAPSEOS_PLATFORM')"
-        class="flex gap-2 items-center px-3 h-9 rounded-lg border border-white/10 bg-white/[0.06] text-s-on-dark-muted hover:bg-white/10 hover:text-s-on-dark transition-colors"
-        :class="isEffectivelyCollapsed ? 'justify-center w-9 px-0' : 'w-[calc(100%-1rem)] mx-2'"
+        class="flex gap-2 items-center px-3 h-9 rounded-lg border border-s-border bg-s-subtle text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark transition-colors"
+        :class="
+          isEffectivelyCollapsed
+            ? 'justify-center w-9 px-0'
+            : 'w-[calc(100%-1rem)] mx-2'
+        "
         @click="openPlatform"
       >
         <span class="flex-shrink-0 i-lucide-layout-grid size-4" />
-        <span v-if="!isEffectivelyCollapsed" class="flex-grow text-start text-sm">
+        <span
+          v-if="!isEffectivelyCollapsed"
+          class="flex-grow text-start text-sm"
+        >
           {{ t('SIDEBAR.SYNAPSEOS_PLATFORM') }}
         </span>
-        <span v-if="!isEffectivelyCollapsed" class="flex-shrink-0 i-lucide-external-link size-3.5 opacity-60" />
+        <span
+          v-if="!isEffectivelyCollapsed"
+          class="flex-shrink-0 i-lucide-external-link size-3.5 opacity-60"
+        />
       </button>
       <div
-        class="px-2 py-2 flex-shrink-0 flex w-full z-50 gap-2 items-center border-t border-white/10"
+        class="px-2 py-2 flex-shrink-0 flex w-full z-50 gap-2 items-center border-t border-s-border"
         :class="isEffectivelyCollapsed ? 'justify-center' : 'justify-between'"
       >
         <SidebarProfileMenu

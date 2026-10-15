@@ -73,7 +73,7 @@ const selectMonth = index => {
         :key="index"
         class="p-2 text-sm font-medium text-center text-s-primary w-[92px] h-10 rounded-lg py-2.5 px-2"
         :class="{
-          'bg-s-brand text-white hover:bg-s-brand-cta':
+          'bg-s-brand text-s-on-brand hover:brightness-110':
             index === activeMonthIndex,
           'hover:bg-s-subtle dark:hover:bg-s-subtle':
             index !== activeMonthIndex,

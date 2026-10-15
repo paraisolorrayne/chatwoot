@@ -265,6 +265,40 @@
         "LOST": "Lost",
         "CUSTOM": "Custom"
       }
+    },
+    "COMMON": {
+      "UPDATED_AT": "Updated at {time}",
+      "REFRESHING": "Refreshing…",
+      "VS_PREVIOUS_PERIOD": "vs previous period"
+    },
+    "STATUS": {
+      "LEAD_NOVO": "New lead",
+      "COM_A_IA": "With AI",
+      "AGUARDANDO_VENDEDOR": "Waiting for sales rep",
+      "FUTURO": "Future",
+      "VISITA_MARCADA": "Visit scheduled",
+      "AGUARDANDO_ESTOQUE": "Waiting for stock",
+      "NEGOCIACAO": "Negotiation",
+      "VENDIDO": "Sold",
+      "SEM_VENDA": "No sale",
+      "QUER": "Interested",
+      "QUER_DEPOIS": "Interested later",
+      "NAO_QUER": "Not interested",
+      "SEM_RESPOSTA": "No reply",
+      "QUALIFICADO": "Qualified",
+      "COM_O_VENDEDOR": "With sales rep",
+      "RECUPERAVEL": "Recoverable",
+      "POS_VENDA": "After-sales",
+      "DESCARTADO": "Discarded",
+      "NAO_GENUINO": "Not genuine",
+      "AUTONOMO": "Autonomous",
+      "SOMBRA": "Shadow mode",
+      "ATIVO": "Active",
+      "CONECTADO": "Connected",
+      "PAUSADO": "Paused",
+      "PENDENTE": "Pending",
+      "DESCONECTADO": "Disconnected",
+      "INATIVO": "Inactive"
     }
   }
 }

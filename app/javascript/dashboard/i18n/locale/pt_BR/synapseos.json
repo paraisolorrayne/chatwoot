@@ -259,6 +259,40 @@
         "LOST": "Perdido",
         "CUSTOM": "Custom"
       }
+    },
+    "COMMON": {
+      "UPDATED_AT": "Atualizado às {time}",
+      "REFRESHING": "Atualizando…",
+      "VS_PREVIOUS_PERIOD": "vs. período anterior"
+    },
+    "STATUS": {
+      "LEAD_NOVO": "Lead novo",
+      "COM_A_IA": "Com a IA",
+      "AGUARDANDO_VENDEDOR": "Aguardando vendedor",
+      "FUTURO": "Futuro",
+      "VISITA_MARCADA": "Visita marcada",
+      "AGUARDANDO_ESTOQUE": "Aguardando estoque",
+      "NEGOCIACAO": "Negociação",
+      "VENDIDO": "Vendido",
+      "SEM_VENDA": "Sem venda",
+      "QUER": "Quer",
+      "QUER_DEPOIS": "Quer depois",
+      "NAO_QUER": "Não quer",
+      "SEM_RESPOSTA": "Sem resposta",
+      "QUALIFICADO": "Qualificado",
+      "COM_O_VENDEDOR": "Com o vendedor",
+      "RECUPERAVEL": "Recuperável",
+      "POS_VENDA": "Pós-venda",
+      "DESCARTADO": "Descartado",
+      "NAO_GENUINO": "Não genuíno",
+      "AUTONOMO": "Autônomo",
+      "SOMBRA": "Modo sombra",
+      "ATIVO": "Ativo",
+      "CONECTADO": "Conectado",
+      "PAUSADO": "Pausado",
+      "PENDENTE": "Pendente",
+      "DESCONECTADO": "Desconectado",
+      "INATIVO": "Inativo"
     }
   }
 }

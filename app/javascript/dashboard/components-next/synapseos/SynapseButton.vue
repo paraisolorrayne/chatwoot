@@ -14,10 +14,11 @@ const props = defineProps({
 
 const variantClasses = {
   primary:
-    'bg-s-brand-cta text-s-inverse hover:bg-s-brand-cta-hover active:bg-s-brand-cta-active shadow-s-sm border border-transparent',
+    'bg-s-brand-cta text-s-on-primary hover:bg-s-brand-cta-hover active:bg-s-brand-cta-active shadow-s-sm border border-transparent',
   outline:
     'bg-s-surface text-s-secondary hover:bg-s-subtle border border-s-border hover:border-s-border-strong',
-  ghost: 'bg-transparent text-s-secondary hover:bg-s-subtle border border-transparent',
+  ghost:
+    'bg-transparent text-s-secondary hover:bg-s-subtle border border-transparent',
   danger:
     'bg-s-error text-s-inverse hover:brightness-110 active:brightness-95 border border-transparent shadow-s-sm',
 };
@@ -41,9 +42,16 @@ const classes = computed(() => [
 
 <template>
   <button :type="type" :disabled="disabled || loading" :class="classes">
-    <span v-if="loading" class="i-lucide-loader-circle animate-spin size-4 shrink-0" />
-    <span v-else-if="icon" :class="['shrink-0 size-4', icon]" />
+    <span
+      v-if="loading"
+      class="i-lucide-loader-circle animate-spin size-4 shrink-0"
+    />
+    <span v-else-if="icon" class="shrink-0 size-4" :class="[icon]" />
     <span class="truncate"><slot /></span>
-    <span v-if="iconTrailing && !loading" :class="['shrink-0 size-4', iconTrailing]" />
+    <span
+      v-if="iconTrailing && !loading"
+      class="shrink-0 size-4"
+      :class="[iconTrailing]"
+    />
   </button>
 </template>

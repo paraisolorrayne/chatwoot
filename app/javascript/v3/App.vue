@@ -60,11 +60,17 @@ export default {
 // dos tokens --s-* para renderizar bg-s-brand etc. Sem este import, o tema
 // branca cai em variáveis CSS undefined e botões/cores ficam invisíveis.
 @import '../dashboard/assets/scss/synapseos_tokens';
+@import '../shared/assets/fonts/inter';
 
 html,
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   @apply h-full w-full;
 
   input,

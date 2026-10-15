@@ -110,7 +110,7 @@ const dayClasses = day => ({
   'text-s-muted pointer-events-none': !isInCurrentMonth(day),
   'text-s-primary hover:text-s-primary hover:bg-s-brand/50 dark:hover:bg-s-brand/70':
     isInCurrentMonth(day),
-  'bg-s-brand text-white':
+  'bg-s-brand text-s-on-brand':
     isSelectedStartOrEndDate(day) && isInCurrentMonth(day),
   'bg-s-brand-soft dark:bg-s-brand-soft':
     (isInRange(day) || isHoveringInRange(day)) &&
