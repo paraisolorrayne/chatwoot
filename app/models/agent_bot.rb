@@ -59,7 +59,9 @@ class AgentBot < ApplicationRecord
       id: id,
       name: name,
       avatar_url: avatar_url || inbox&.avatar_url,
-      type: 'agent_bot'
+      type: 'agent_bot',
+      # CUSTOMIZAÇÃO_SYNAPSEOS: a thread colore o rótulo do remetente pelo papel.
+      squadron_role: squadron_role
     }
   end
 

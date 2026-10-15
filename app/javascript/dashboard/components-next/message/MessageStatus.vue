@@ -54,15 +54,11 @@ const statusIcon = computed(() => {
   return statusIconMap[status];
 });
 
-const statusColor = computed(() => {
-  const statusIconMap = {
-    [MESSAGE_STATUS.SENT]: 'text-s-muted',
-    [MESSAGE_STATUS.DELIVERED]: 'text-s-muted',
-    [MESSAGE_STATUS.READ]: 'text-[#7EB6FF]',
-  };
-
-  return statusIconMap[status];
-});
+// CUSTOMIZAÇÃO_SYNAPSEOS — enviado/entregue herdam a cor do meta do bubble
+// (legível também no bubble escuro do consultor).
+const statusColor = computed(() =>
+  status === MESSAGE_STATUS.READ ? 'text-[#7EB6FF]' : ''
+);
 
 const tooltipText = computed(() => {
   const statusTextMap = {
@@ -81,7 +77,6 @@ const tooltipText = computed(() => {
     v-if="status === MESSAGE_STATUS.PROGRESS"
     v-tooltip.top-start="tooltipText"
     :icon="progessIcon"
-    class="text-s-muted"
   />
   <Icon
     v-else

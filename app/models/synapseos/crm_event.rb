@@ -89,7 +89,9 @@ module Synapseos
         account_id: account_id,
         inbox_id: conversation.inbox_id,
         message_type: :activity,
-        content: timeline_content
+        content: timeline_content,
+        # Marcador estruturado pro frontend destacar eventos (ex.: handoff de venda) sem depender do texto.
+        content_attributes: { synapseos_event: event_type, synapseos_state: metadata['to'] || metadata[:to] }.compact
       )
     rescue StandardError => e
       Rails.logger.warn("[Synapseos::CrmEvent] could not emit timeline activity: #{e.message}")

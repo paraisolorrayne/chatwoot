@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
-import { messageTimestamp } from 'shared/helpers/timeHelper';
+import { useI18n } from 'vue-i18n';
+import { formatMessageTime } from './messageTime';
 
 import MessageStatus from './MessageStatus.vue';
 import Icon from 'next/icon/Icon.vue';
@@ -32,8 +33,10 @@ const {
   contentAttributes,
 } = useMessageContext();
 
+// CUSTOMIZAÇÃO_SYNAPSEOS — horário no idioma do usuário, 24h.
+const { locale } = useI18n();
 const readableTime = computed(() =>
-  messageTimestamp(createdAt.value, 'LLL d, h:mm a')
+  formatMessageTime(createdAt.value, locale.value)
 );
 
 const showStatusIndicator = computed(() => {

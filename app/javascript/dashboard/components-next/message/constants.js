@@ -11,7 +11,6 @@ export const MESSAGE_VARIANTS = {
   ACTIVITY: 'activity',
   PRIVATE: 'private',
   BOT: 'bot',
-  ERROR: 'error',
   TEMPLATE: 'template',
   EMAIL: 'email',
   UNSUPPORTED: 'unsupported',

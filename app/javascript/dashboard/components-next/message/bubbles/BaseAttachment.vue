@@ -40,8 +40,9 @@ const senderName = computed(() => {
             <Icon :icon="icon" class="text-white size-4" />
           </slot>
         </div>
+        <!-- CUSTOMIZAÇÃO_SYNAPSEOS: textos herdam a cor do bubble (legível no bubble escuro do consultor). -->
         <div class="space-y-1 overflow-hidden">
-          <div v-if="senderName" class="text-s-primary text-sm truncate">
+          <div v-if="senderName" class="text-sm truncate">
             {{
               t(senderTranslationKey, {
                 sender: senderName,
@@ -49,10 +50,10 @@ const senderName = computed(() => {
             }}
           </div>
           <slot>
-            <div v-if="title" class="truncate text-sm text-s-primary">
+            <div v-if="title" class="truncate text-sm">
               {{ title }}
             </div>
-            <div v-if="content" class="truncate text-sm text-s-muted">
+            <div v-if="content" class="truncate text-sm opacity-70">
               {{ content }}
             </div>
           </slot>
@@ -64,13 +65,13 @@ const senderName = computed(() => {
           :href="action.href"
           rel="noreferrer noopener nofollow"
           target="_blank"
-          class="w-full block bg-s-subtle px-4 py-2 rounded-lg text-sm text-center border border-s-border"
+          class="w-full block bg-s-subtle text-s-primary px-4 py-2 rounded-lg text-sm text-center border border-s-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-s-accent"
         >
           {{ action.label }}
         </a>
         <button
           v-else
-          class="w-full bg-s-subtle px-4 py-2 rounded-lg text-sm text-center border border-s-border"
+          class="w-full bg-s-subtle text-s-primary px-4 py-2 rounded-lg text-sm text-center border border-s-border focus-visible:outline focus-visible:outline-2 focus-visible:outline-s-accent"
           @click="action.onClick"
         >
           {{ action.label }}

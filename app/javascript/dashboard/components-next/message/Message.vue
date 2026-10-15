@@ -23,6 +23,7 @@ import {
 } from './constants';
 
 import Avatar from 'next/avatar/Avatar.vue';
+import Button from 'next/button/Button.vue';
 
 import TextBubble from './bubbles/Text/Index.vue';
 import ActivityBubble from './bubbles/Activity.vue';
@@ -44,6 +45,7 @@ import VoiceCallBubble from './bubbles/VoiceCall.vue';
 import MessageError from './MessageError.vue';
 import ContextMenu from 'dashboard/modules/conversations/components/MessageContextMenu.vue';
 import { useBranding } from 'shared/composables/useBranding';
+import { agentClasses } from 'dashboard/helper/synapseos/agentIdentity';
 
 /**
  * @typedef {Object} Attachment
@@ -93,6 +95,7 @@ import { useBranding } from 'shared/composables/useBranding';
  * @property {string|null} [senderType=null] - The type of the sender
  * @property {string} content - The message content
  * @property {boolean} [groupWithNext=false] - Whether the message should be grouped with the next message
+ * @property {boolean} [groupWithPrevious=false] - Whether the message continues the previous message's group
  * @property {Object|null} [inReplyTo=null] - The message to which this message is a reply
  * @property {boolean} [isEmailInbox=false] - Whether the message is from an email inbox
  * @property {number} conversationId - The ID of the conversation to which the message belongs
@@ -124,6 +127,7 @@ const props = defineProps({
   createdAt: { type: Number, required: true }, // eslint-disable-line vue/no-unused-properties
   currentUserId: { type: Number, required: true }, // eslint-disable-line vue/no-unused-properties
   groupWithNext: { type: Boolean, default: false },
+  groupWithPrevious: { type: Boolean, default: false },
   inboxId: { type: Number, default: null }, // eslint-disable-line vue/no-unused-properties
   inboxSupportsReplyTo: { type: Object, default: () => ({}) },
   inReplyTo: { type: Object, default: null }, // eslint-disable-line vue/no-unused-properties
@@ -165,7 +169,8 @@ const variant = computed(() => {
     return MESSAGE_VARIANTS.EMAIL;
   }
 
-  if (props.status === MESSAGE_STATUS.FAILED) return MESSAGE_VARIANTS.ERROR;
+  // CUSTOMIZAÇÃO_SYNAPSEOS — mensagem com falha mantém o variant do remetente;
+  // o Base.vue só adiciona a borda de erro.
   if (props.contentAttributes?.isUnsupported)
     return MESSAGE_VARIANTS.UNSUPPORTED;
 
@@ -254,6 +259,34 @@ const gridClass = computed(() => {
   return map[orientation.value];
 });
 
+const isAiSender = computed(() =>
+  [SENDER_TYPES.AGENT_BOT, SENDER_TYPES.CAPTAIN_ASSISTANT].includes(
+    props.sender?.type
+  )
+);
+
+// CUSTOMIZAÇÃO_SYNAPSEOS — rótulo do remetente no primeiro bubble de um grupo
+// de saída: "<Nome> · IA" com o ponto de cor do agente, ou só "<Nome>" para o
+// consultor. Notas da IA já trazem o próprio cabeçalho.
+const senderLabel = computed(() => {
+  const name = props.sender?.availableName || props.sender?.name;
+  if (!name || props.groupWithPrevious) return '';
+  if (orientation.value !== ORIENTATION.RIGHT) return '';
+  if (variant.value === MESSAGE_VARIANTS.EMAIL) return '';
+  if (!isAiSender.value) return name;
+  if (props.private) return '';
+
+  return t('SYNAPSEOS.MESSAGES.SENDER_AI', { name });
+});
+
+const senderDotClass = computed(
+  () =>
+    agentClasses({
+      squadronRole: props.sender?.squadronRole,
+      name: props.sender?.name,
+    }).bg
+);
+
 const gridTemplate = computed(() => {
   const map = {
     [ORIENTATION.LEFT]: `
@@ -261,6 +294,7 @@ const gridTemplate = computed(() => {
       "meta"
     `,
     [ORIENTATION.RIGHT]: `
+      ${senderLabel.value ? '"label ."' : ''}
       "bubble avatar"
       "meta spacer"
     `,
@@ -342,6 +376,12 @@ const componentToRender = computed(() => {
 
   return TextBubble;
 });
+
+const hasFailed = computed(
+  () =>
+    props.status === MESSAGE_STATUS.FAILED ||
+    !!props.contentAttributes?.externalError
+);
 
 const shouldShowContextMenu = computed(() => {
   return !props.contentAttributes?.isUnsupported;
@@ -425,6 +465,13 @@ function openContextMenu(e) {
     x: e.pageX || e.clientX,
     y: e.pageY || e.clientY,
   };
+  showContextMenu.value = true;
+}
+
+// CUSTOMIZAÇÃO_SYNAPSEOS — ações também por hover/foco, não só clique direito.
+function openContextMenuFromButton(e) {
+  const { left, bottom } = e.currentTarget.getBoundingClientRect();
+  contextMenuPosition.value = { x: left, y: bottom };
   showContextMenu.value = true;
 }
 
@@ -518,7 +565,7 @@ provideMessageContext({
   <div
     v-if="shouldRenderMessage"
     :id="`message${props.id}`"
-    class="flex w-full mb-2 message-bubble-container"
+    class="flex w-full mb-2 message-bubble-container group/message"
     :data-message-id="props.id"
     :class="[
       flexOrientationClass,
@@ -536,7 +583,7 @@ provideMessageContext({
       :class="[
         gridClass,
         {
-          'gap-y-2': contentAttributes.externalError,
+          'gap-y-2': hasFailed,
           'w-full': variant === MESSAGE_VARIANTS.EMAIL,
         },
       ]"
@@ -545,6 +592,18 @@ provideMessageContext({
         gridTemplateAreas: gridTemplate,
       }"
     >
+      <div
+        v-if="senderLabel"
+        class="[grid-area:label] flex items-center justify-end gap-1.5 min-w-0 mb-1 ltr:ml-8 rtl:mr-8 text-xs font-medium text-s-secondary"
+      >
+        <span
+          v-if="isAiSender"
+          class="size-2 rounded-full shrink-0"
+          :class="senderDotClass"
+          aria-hidden="true"
+        />
+        <span class="truncate">{{ senderLabel }}</span>
+      </div>
       <div
         v-if="!shouldGroupWithNext && shouldShowAvatar"
         v-tooltip.left-end="avatarTooltip"
@@ -561,10 +620,25 @@ provideMessageContext({
         }"
         @contextmenu="openContextMenu($event)"
       >
+        <Button
+          v-if="shouldShowContextMenu"
+          ghost
+          slate
+          xs
+          icon="i-lucide-ellipsis-vertical"
+          class="self-center shrink-0 opacity-0 group-hover/message:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-s-accent motion-reduce:transition-none"
+          :class="{
+            'order-last': orientation === ORIENTATION.LEFT,
+            'opacity-100': showContextMenu,
+          }"
+          :aria-label="t('SYNAPSEOS.MESSAGES.ACTIONS')"
+          aria-haspopup="menu"
+          @click="openContextMenuFromButton"
+        />
         <Component :is="componentToRender" />
       </div>
       <MessageError
-        v-if="contentAttributes.externalError"
+        v-if="hasFailed"
         class="[grid-area:meta]"
         :class="flexOrientationClass"
         :error="contentAttributes.externalError"
