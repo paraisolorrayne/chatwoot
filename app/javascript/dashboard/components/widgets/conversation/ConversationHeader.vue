@@ -6,6 +6,7 @@ import { useElementSize } from '@vueuse/core';
 import BackButton from '../BackButton.vue';
 import InboxName from '../InboxName.vue';
 import MoreActions from './MoreActions.vue';
+import SidepanelSwitch from 'dashboard/components-next/Conversation/SidepanelSwitch.vue';
 import Avatar from 'next/avatar/Avatar.vue';
 import SLACardLabel from './components/SLACardLabel.vue';
 import wootConstants from 'dashboard/constants/globals';
@@ -13,6 +14,13 @@ import { conversationListPageURL } from 'dashboard/helper/URLHelper';
 import { snoozedReopenTime } from 'dashboard/helper/snoozeHelpers';
 import { useInbox } from 'dashboard/composables/useInbox';
 import { useI18n } from 'vue-i18n';
+// CUSTOMIZAÇÃO_SYNAPSEOS: chip de controle IA/humano, etapa do lead e "Assumir conversa".
+import Button from 'dashboard/components-next/button/Button.vue';
+import SynapseStatusBadge from 'next/synapseos/SynapseStatusBadge.vue';
+import { emitter } from 'shared/helpers/mitt';
+import { agentClasses } from 'dashboard/helper/synapseos/agentIdentity';
+import { useBotControl, FOCUS_REPLY_EDITOR } from './synapseos/useBotControl';
+import { useConversationLead } from './synapseos/useConversationLead';
 
 const props = defineProps({
   chat: {
@@ -91,6 +99,30 @@ const hasMultipleInboxes = computed(
 );
 
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
+
+// CUSTOMIZAÇÃO_SYNAPSEOS
+const { mode, bot, human, minutesLeft, isAutonomous, isCurrentUser } =
+  useBotControl();
+const { stageBadge } = useConversationLead(() => props.chat.id);
+
+const botDotClass = computed(() => agentClasses({ name: bot.value?.name }).bg);
+
+const controlLabel = computed(() => {
+  const params = { bot: bot.value?.name, minutes: minutesLeft.value };
+  if (mode.value === 'bot') {
+    return t('SYNAPSEOS.CONVERSATION.CONTROL.AUTONOMOUS', params);
+  }
+  if (isCurrentUser.value) {
+    return t('SYNAPSEOS.CONVERSATION.CONTROL.YOU_TOOK_OVER', params);
+  }
+  return t('SYNAPSEOS.CONVERSATION.CONTROL.HUMAN_TOOK_OVER', {
+    ...params,
+    name: human.value?.available_name || human.value?.name,
+  });
+});
+
+// Só foca o editor: é o envio da mensagem que pausa a IA (gate do n8n).
+const takeOver = () => emitter.emit(FOCUS_REPLY_EDITOR);
 </script>
 
 <template>
@@ -119,7 +151,7 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
       >
         <div class="flex flex-row items-center max-w-full gap-1 p-0 m-0">
           <span
-            class="text-sm sm:text-[15px] font-semibold truncate leading-tight text-s-primary"
+            class="min-w-0 text-sm sm:text-[15px] font-semibold truncate leading-tight text-s-primary"
           >
             {{ currentContact.name }}
           </span>
@@ -135,6 +167,28 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
         <div
           class="flex items-center gap-2 overflow-hidden text-xs text-s-muted conversation--header--actions text-ellipsis whitespace-nowrap"
         >
+          <span
+            v-if="mode"
+            class="inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-xs font-medium whitespace-nowrap shrink-0"
+            :class="
+              mode === 'human'
+                ? 'bg-s-bubble-human text-s-bubble-human-text'
+                : 'bg-s-brand-soft text-s-brand-text'
+            "
+          >
+            <span
+              v-if="mode === 'bot'"
+              class="size-1.5 rounded-full shrink-0"
+              :class="botDotClass"
+            />
+            {{ controlLabel }}
+          </span>
+          <SynapseStatusBadge
+            v-if="stageBadge"
+            v-bind="stageBadge"
+            size="sm"
+            class="shrink-0"
+          />
           <InboxName v-if="hasMultipleInboxes" :inbox="inbox" class="!mx-0" />
           <span v-if="isSnoozed" class="font-semibold text-s-warning-text">
             {{ snoozedDisplayText }}
@@ -152,7 +206,15 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
         :parent-width="width"
         class="hidden md:flex"
       />
+      <Button
+        v-if="isAutonomous"
+        size="sm"
+        icon="i-lucide-hand"
+        :label="$t('SYNAPSEOS.CONVERSATION.CONTROL.TAKE_OVER')"
+        @click="takeOver"
+      />
       <MoreActions :conversation-id="currentChat.id" />
+      <SidepanelSwitch />
     </div>
   </div>
 </template>

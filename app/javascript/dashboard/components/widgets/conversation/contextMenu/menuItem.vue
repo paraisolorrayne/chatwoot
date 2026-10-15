@@ -58,7 +58,7 @@ defineProps({
   }
 
   &:hover {
-    @apply bg-s-brand text-white;
+    @apply bg-s-brand text-s-on-brand;
   }
 }
 

@@ -1,28 +1,5 @@
 {
   "SYNAPSEOS": {
-    "LIVE": {
-      "TITLE": "Tempo Real",
-      "SUBTITLE": "Monitoramento do esquadrão ao vivo",
-      "AGENTS_SECTION": "Agentes Ativos",
-      "HOT_CONVERSATIONS": "Conversas Quentes",
-      "LAST_ACTION_NONE": "Sem atividade recente",
-      "STATUS": {
-        "ONLINE": "Online",
-        "IDLE": "Ocioso",
-        "OFFLINE": "Offline"
-      },
-      "COLUMNS": {
-        "CONVERSATION": "Conversa",
-        "CONTACT": "Contato",
-        "ASSIGNEE": "Responsável",
-        "STATUS": "Status",
-        "TIME_IN_STAGE": "Tempo no estágio"
-      },
-      "CABLE": {
-        "CONNECTED": "Ao vivo",
-        "POLLING": "Sincronizando"
-      }
-    },
     "LIVE_AGENTS": {
       "TITLE": "Agentes ao vivo",
       "SUBTITLE": "Visão em tempo real da atividade e carga dos agentes",
@@ -62,48 +39,45 @@
           "PENDING": "Pendente",
           "SNOOZED": "Adiada"
         }
+      },
+      "SEARCH_LABEL": "Buscar agentes",
+      "ERROR": {
+        "TITLE": "Não foi possível carregar os agentes.",
+        "RETRY": "Tentar de novo"
+      },
+      "ROLE": {
+        "ADMINISTRATOR": "Administrador",
+        "AGENT": "Agente"
       }
     },
     "DASHBOARD": {
       "TITLE": "Dashboard Executivo",
-      "SUBTITLE": "KPIs operacionais e de receita dos últimos {days} dias",
-      "LOADING": "Carregando métricas…",
-      "NO_DATA": "Sem dados no período selecionado ainda.",
+      "SUBTITLE": "KPIs de vendas e operação dos últimos {days} dias",
       "EMPTY_CHART_TITLE": "Sem atividade ainda",
-      "EMPTY_CHART_DESCRIPTION": "Receba ou envie mensagens neste período pra popular o gráfico.",
+      "EMPTY_CHART_DESCRIPTION": "Envie ou receba mensagens neste período para preencher o gráfico.",
       "EMPTY_EVENTS_TITLE": "Nenhum alerta ainda",
-      "EMPTY_EVENTS_DESCRIPTION": "Alertas aparecem aqui quando a Elisa transbordar leads qualificados pra equipe de vendas.",
-      "TABS": {
-        "OVERVIEW": "Visão geral",
-        "REPORTS": "Relatórios ao vivo"
-      },
+      "EMPTY_EVENTS_DESCRIPTION": "Os alertas aparecem aqui quando a Elisa passa leads qualificados para a equipe de vendas.",
       "KPI": {
-        "LEADS": "Leads",
         "SHOOTS_PERIOD": "Disparos no período",
-        "SHOOTS_MONTH": "Disparos no mês",
-        "SHOOTS_TODAY": "Disparos hoje",
         "DEALS_WON": "Negócios ganhos",
         "DEALS_LOST": "Negócios perdidos",
-        "REVENUE": "Receita potencial",
-        "MESSAGES_RECEIVED": "Mensagens recebidas",
-        "MESSAGES_SENT": "Mensagens enviadas",
-        "BOT_TAKEOVERS": "Elisa → atendimento humano",
-        "HUMAN_RESCUES": "Humano → resgate pela Elisa",
-        "AI_RESPONSES": "Respostas da IA",
-        "APPOINTMENTS": "Agendamentos",
-        "CONVERSION_RATE": "Taxa de conversão",
-        "DEALS_WON_HINT": "Leads na coluna \"Ganho\" da pipeline",
-        "CONVERSION_RATE_HINT": "% dos disparos feitos que geraram alerta de venda",
-        "BOT_TAKEOVERS_HINT": "Quantidade de alertas enviados ao time",
-        "SHOOTS_MONTH_HINT": "Mês corrente (não reage ao filtro)",
-        "SHOOTS_TODAY_HINT": "Hoje (não reage ao filtro)"
+        "REVENUE": "Receita em negociação",
+        "BOT_TAKEOVERS": "Elisa → equipe",
+        "CONVERSION_RATE": "Qualificação",
+        "DEALS_WON_HINT": "Coluna \"Ganho\" da pipeline · estado atual",
+        "CONVERSION_RATE_HINT": "Parcela dos contatos abordados que virou alerta de venda",
+        "BOT_TAKEOVERS_HINT": "Leads qualificados passados para a equipe de vendas",
+        "SHOOTS_PERIOD_HINT": "Contatos distintos abordados pela Elisa",
+        "DEALS_LOST_HINT": "Coluna \"Perdido\" da pipeline · estado atual",
+        "REVENUE_HINT": "Soma dos preços de referência dos veículos nos alertas de venda do período"
       },
       "CHART": {
         "TITLE": "Atividade diária",
         "MESSAGES_RECEIVED": "Mensagens recebidas",
-        "MESSAGES_SENT": "Mensagens enviadas",
+        "MESSAGES_SENT": "Contatos abordados",
         "AI_RESPONSES": "Respostas da IA",
-        "BOT_TAKEOVERS": "Transferências da Elisa"
+        "BOT_TAKEOVERS": "Elisa → equipe",
+        "AXIS_VOLUME": "Mensagens e contatos"
       },
       "ALERT_DETAILS": {
         "TITLE": "Detalhes do alerta",
@@ -112,36 +86,53 @@
         "INTEREST": "Interesse",
         "REASON": "Motivo",
         "NOTES": "Observações",
-        "OPEN_CONVERSATION": "Abrir conversa"
+        "OPEN_CONVERSATION": "Abrir conversa",
+        "MODEL_UNDEFINED": "Modelo a definir"
       },
       "RECENT_EVENTS": {
-        "TITLE": "Últimos alertas",
-        "EMPTY": "Nenhum alerta de venda ainda."
+        "TITLE": "Últimos alertas"
       },
       "DRY_RUN": {
         "TITLE": "Disparos programados hoje",
         "EMPTY_TITLE": "Nada programado ainda",
-        "EMPTY_DESC": "O preview roda às 08:00 e 13:30 (ou sob demanda). Aparece aqui quem a Elisa vai abordar hoje."
+        "EMPTY_DESC": "O preview roda às 08:00 e 13:30 (ou sob demanda). Aparece aqui quem a Elisa vai abordar hoje.",
+        "TYPE": {
+          "SHOOT": "Disparo",
+          "FOLLOW_UP": "Follow-up"
+        },
+        "PHONE_END": "••••{digits}"
       },
-      "EVENT_TYPE": {
-        "LEAD_CREATED": "Lead criado",
-        "LEAD_QUALIFIED": "Lead qualificado",
-        "LEAD_DISQUALIFIED": "Lead desqualificado",
-        "DEAL_CREATED": "Negócio criado",
-        "DEAL_WON": "Negócio ganho",
-        "DEAL_LOST": "Negócio perdido",
-        "BOT_TAKEOVER": "Transferência pra humano",
-        "HUMAN_RESCUE": "Resgate pelo bot",
-        "APPOINTMENT_CONFIRMED": "Agendamento confirmado",
-        "PRIVATE_NOTE_ADDED": "Nota privada adicionada"
+      "PERIOD_LABEL": "Período",
+      "PERIOD_DAYS": "{days}d",
+      "ERROR": {
+        "TITLE": "Não foi possível atualizar o dashboard",
+        "DESCRIPTION": "Verifique a conexão e tente de novo.",
+        "STALE": "Mostrando os dados das {time}.",
+        "RETRY": "Tentar de novo"
+      },
+      "TODAY": {
+        "TITLE": "Hoje",
+        "HINT": "Não reage ao filtro de período",
+        "SHOOTS": "Disparos",
+        "SCHEDULED": "Programados",
+        "HANDOFFS": "Elisa → equipe"
+      },
+      "FUNNEL": {
+        "TITLE": "Funil do período",
+        "DESCRIPTION": "Dos contatos abordados até os negócios ganhos",
+        "SHOOTS": "Contatos abordados",
+        "REPLIED": "Responderam",
+        "ALERTS": "Alertas de venda",
+        "WON": "Ganhos",
+        "STEP_RATE": "{rate} da etapa anterior",
+        "EMPTY_TITLE": "Nenhum disparo no período",
+        "EMPTY_DESCRIPTION": "O funil se preenche quando a Elisa aborda contatos no período selecionado."
       }
     },
     "METRICS": {
       "TITLE": "Esquadrão Synka",
       "SUBTITLE": "Métricas de performance do esquadrão de IA",
       "REFRESH": "Atualizar",
-      "LAST_UPDATED": "Atualizado às {time}",
-      "EMPTY": "—",
       "ERROR": "Falha ao carregar",
       "AGENT_COUNT": "1 agente | {n} agentes",
       "RANGES": {
@@ -228,29 +219,32 @@
             "VALOR_RECUPERADO_CENTS": "Valor recuperado"
           }
         }
+      },
+      "RANGE_LABEL": "Período",
+      "EMPTY_STATE": {
+        "TITLE": "Nenhum agente cadastrado ainda",
+        "DESCRIPTION": "Cadastre agent bots com um papel do esquadrão (Alice, Iza, Otto, Luís, Fernanda, Ângela, Vitor) para ver as métricas aqui."
       }
     },
     "PIPELINE": {
       "TITLE": "Pipeline de CRM",
       "SUBTITLE": "Arraste leads entre os estágios para atualizar a posição no pipeline.",
       "LOADING": "Carregando pipeline…",
-      "UNASSIGNED": "Sem responsável",
+      "UNASSIGNED": "Sem estágio",
       "ADD_STAGE": "Adicionar estágio",
-      "ADD_STAGE_PLUS": "+ Adicionar estágio",
       "NEW_STAGE_HEADER": "Novo estágio do pipeline",
       "STAGE_NAME": "Nome",
       "STAGE_COLOR": "Cor",
       "STAGE_TYPE": "Tipo",
-      "STAGE_TYPE_HINT": "Estágios 'Ganho' e 'Perdido' encerram automaticamente o negócio do lead quando um card é solto neles.",
+      "STAGE_TYPE_HINT": "Estágios 'Ganho' e 'Perdido' encerram o negócio do lead quando um card é solto neles (após confirmação).",
       "CONFIRM_DELETE": "Excluir o estágio '{name}'? Os leads nele ficarão sem estágio.",
-      "STAGE_SUM": "Σ {value}",
-      "CONV_ID": "conv #{id}",
+      "STAGE_SUM": "Total {value}",
       "CANCEL": "Cancelar",
       "CREATE": "Criar",
       "TEMPLATES": "Templates",
       "TEMPLATE_HEADER": "Templates de pipeline",
       "TEMPLATE_DESCRIPTION": "Escolha um template pré-configurado para o seu segmento. Atenção: isso substituirá todos os estágios atuais e desvinculará os leads existentes.",
-      "TEMPLATE_CONFIRM": "Aplicar este template? Todos os estágios atuais serão substituídos e os leads ficarão sem estágio.",
+      "TEMPLATE_CONFIRM": "Todos os estágios atuais serão substituídos e os leads ficarão sem estágio.",
       "TEMPLATE_STAGES": "{count} estágios",
       "STAGE_TYPES": {
         "INBOUND": "Inbound",
@@ -258,7 +252,264 @@
         "WON": "Ganho",
         "LOST": "Perdido",
         "CUSTOM": "Custom"
+      },
+      "TEMPLATE_CONFIRM_TITLE": "Aplicar o template {name}?",
+      "TEMPLATE_FETCH_ERROR": "Não foi possível carregar os templates. Tente novamente.",
+      "TEMPLATE_EMPTY": "Nenhum template disponível no momento.",
+      "APPLY": "Aplicar",
+      "REFRESH": "Atualizar pipeline",
+      "CONFIGURE": "Configurar",
+      "SEARCH_PLACEHOLDER": "Buscar por nome, telefone ou modelo",
+      "FILTERS": {
+        "HANDLER": "Responsável",
+        "SOURCE": "Origem",
+        "MODEL": "Modelo"
+      },
+      "CLEAR_FILTERS": "Limpar filtros",
+      "FILTERED_COUNT": "Leads exibidos: {count}",
+      "LOAD_ERROR": "Não foi possível carregar o pipeline.",
+      "RETRY": "Tentar novamente",
+      "EMPTY_STAGES_TITLE": "Nenhum estágio configurado",
+      "EMPTY_STAGES_DESCRIPTION": "Aplique um template de pipeline para começar a organizar os leads.",
+      "EMPTY_LEADS_TITLE": "Nenhum lead no pipeline ainda",
+      "EMPTY_LEADS_DESCRIPTION": "Os leads aparecem aqui assim que o agente de IA inicia uma conversa.",
+      "EMPTY_COLUMN": "Nenhum lead",
+      "EXPAND_COLUMN": "Expandir coluna {name}",
+      "COLLAPSE_COLUMN": "Recolher coluna {name}",
+      "RENAME_STAGE": "Clique para renomear",
+      "DELETE_STAGE": "Excluir estágio {name}",
+      "DELETE_STAGE_TITLE": "Excluir estágio?",
+      "DELETE": "Excluir",
+      "MOVE_LEAD": "Mover {name} para…",
+      "MOVE_TO": "Mover para…",
+      "MOVED_TO": "Movido para {stage}",
+      "MOVE_UNDONE": "Movimento desfeito",
+      "MOVE_ERROR": "Não foi possível mover o lead. Tente novamente.",
+      "UNDO": "Desfazer",
+      "CLOSE": "Fechar",
+      "CONFIRM": "Confirmar",
+      "CONFIRM_WON_TITLE": "Registrar como venda?",
+      "CONFIRM_LOST_TITLE": "Encerrar como perdido?",
+      "CONFIRM_CLOSE_DESCRIPTION": "{name} vai para {stage} e o negócio será encerrado.",
+      "LOSS_REASON": "Motivo da perda",
+      "LAST_UPDATE": "Última atualização: {time}",
+      "ELAPSED": {
+        "MINUTES": "{count} min",
+        "HOURS": "{count} h",
+        "DAYS": "{count} d"
+      },
+      "SOURCES": {
+        "DISPARO": "Disparo",
+        "INSTAGRAM": "Instagram",
+        "WHATSAPP": "WhatsApp",
+        "MANUAL": "Manual"
+      },
+      "HORIZONS": {
+        "IMMEDIATE": "Imediato",
+        "M1_3": "1 a 3 meses",
+        "M3_6": "3 a 6 meses",
+        "M6_12": "6 a 12 meses",
+        "M12_PLUS": "Mais de 12 meses",
+        "NO_DEADLINE": "Sem prazo definido"
+      },
+      "YES": "Sim",
+      "NO": "Não",
+      "DRAWER": {
+        "HANDLER": "Atendido por",
+        "HANDOFF": "Resumo do handoff",
+        "LAST_MESSAGE": "Última mensagem",
+        "OPEN_CONVERSATION": "Abrir conversa",
+        "FIELDS": {
+          "MODEL": "Modelo de interesse",
+          "VALUE": "Valor",
+          "HORIZON": "Horizonte de compra",
+          "TRADE_IN": "Tem troca",
+          "PAYMENT": "Forma de pagamento",
+          "URGENCY": "Urgência",
+          "SOURCE": "Origem",
+          "REASON": "Motivo",
+          "NEXT_ACTION": "Próximo contato",
+          "UPDATED": "Última atualização",
+          "CREATED": "Criado em"
+        }
+      },
+      "COLORS": {
+        "CYAN": "Ciano",
+        "GREEN": "Verde",
+        "SLATE": "Cinza",
+        "AMBER": "Âmbar",
+        "ROSE": "Rosa",
+        "INDIGO": "Índigo",
+        "VIOLET": "Violeta",
+        "ORANGE": "Laranja"
       }
+    },
+    "COMMON": {
+      "UPDATED_AT": "Atualizado às {time}",
+      "REFRESHING": "Atualizando…",
+      "VS_PREVIOUS_PERIOD": "vs. período anterior"
+    },
+    "STATUS": {
+      "LEAD_NOVO": "Lead novo",
+      "COM_A_IA": "Com a IA",
+      "AGUARDANDO_VENDEDOR": "Aguardando vendedor",
+      "FUTURO": "Futuro",
+      "VISITA_MARCADA": "Visita marcada",
+      "AGUARDANDO_ESTOQUE": "Aguardando estoque",
+      "NEGOCIACAO": "Negociação",
+      "VENDIDO": "Vendido",
+      "SEM_VENDA": "Sem venda",
+      "QUER": "Quer",
+      "QUER_DEPOIS": "Quer depois",
+      "NAO_QUER": "Não quer",
+      "SEM_RESPOSTA": "Sem resposta",
+      "QUALIFICADO": "Qualificado",
+      "COM_O_VENDEDOR": "Com o vendedor",
+      "RECUPERAVEL": "Recuperável",
+      "POS_VENDA": "Pós-venda",
+      "DESCARTADO": "Descartado",
+      "NAO_GENUINO": "Não genuíno",
+      "AUTONOMO": "Autônomo",
+      "SOMBRA": "Modo sombra",
+      "ATIVO": "Ativo",
+      "CONECTADO": "Conectado",
+      "PAUSADO": "Pausado",
+      "PENDENTE": "Pendente",
+      "DESCONECTADO": "Desconectado",
+      "INATIVO": "Inativo"
+    },
+    "CHAT_LIST": {
+      "TABS": {
+        "NEEDS_HUMAN": "Precisa de você"
+      },
+      "EMPTY": {
+        "TITLE": "Nenhuma conversa por aqui",
+        "NEEDS_HUMAN_TITLE": "Ninguém esperando atendimento agora",
+        "NEEDS_HUMAN_DESCRIPTION": "Quando a IA passar um lead para a equipe, ele aparece aqui."
+      },
+      "LAST_SENDER": {
+        "AI": "Última mensagem: {name} (IA)",
+        "HUMAN": "Última mensagem: {name}"
+      },
+      "TIME_AGO": {
+        "NOW": "agora",
+        "MINUTES": "{count}min",
+        "HOURS": "{count}h",
+        "DAYS": "{count}d",
+        "MONTHS": "{count} mês | {count} meses",
+        "YEARS": "{count} ano | {count} anos"
+      }
+    },
+    "CONVERSATION": {
+      "TYPING_INDICATOR_ALT": "Digitando",
+      "CONTROL": {
+        "AUTONOMOUS": "{bot} · Autônoma",
+        "YOU_TOOK_OVER": "Você assumiu · {bot} volta em {minutes} min",
+        "HUMAN_TOOK_OVER": "{name} assumiu · {bot} volta em {minutes} min",
+        "TAKE_OVER": "Assumir conversa",
+        "SEND_PAUSES_HINT": "Ao enviar, {bot} pausa por {minutes} min"
+      },
+      "LEAD_CARD": {
+        "TITLE": "Lead",
+        "EMPTY": "Ainda não há lead para esta conversa",
+        "VIEW_PIPELINE": "Ver na pipeline",
+        "NO_STAGE": "Sem etapa",
+        "FIELDS": {
+          "STAGE": "Etapa",
+          "INTEREST": "Interesse",
+          "HORIZON": "Horizonte de compra",
+          "SOURCE": "Origem",
+          "PHONE": "Telefone",
+          "HANDLING": "Atendimento",
+          "HANDOFF": "Resumo do handoff"
+        },
+        "HORIZONS": {
+          "IMMEDIATE": "Imediato",
+          "ONE_TO_THREE_MONTHS": "1 a 3 meses",
+          "THREE_TO_SIX_MONTHS": "3 a 6 meses",
+          "SIX_TO_TWELVE_MONTHS": "6 a 12 meses",
+          "OVER_TWELVE_MONTHS": "Mais de 12 meses",
+          "NO_DEADLINE": "Sem prazo"
+        },
+        "SOURCES": {
+          "DISPARO": "Disparo",
+          "AUTOMATION": "Automação",
+          "ALERT_APPROVED": "Alerta aprovado",
+          "IMPORT": "Importação",
+          "MANUAL": "Manual"
+        },
+        "MOVE": {
+          "CONFIRM_TITLE": "Mover para “{stage}”?",
+          "CONFIRM_WON": "O lead será marcado como venda fechada.",
+          "CONFIRM_LOST": "O lead será marcado como perdido.",
+          "LOSS_REASON": "Motivo da perda",
+          "LOSS_REASON_PLACEHOLDER": "Selecione o motivo",
+          "CONFIRM": "Mover",
+          "SUCCESS": "Lead movido para {stage}",
+          "ERROR": "Não foi possível mover o lead"
+        }
+      }
+    },
+    "DESIGN_SYSTEM": {
+      "TITLE": "Design System",
+      "DESCRIPTION": "Tokens e primitivos do design system Fykos usados no Synapse OS.",
+      "SECTIONS": {
+        "COLORS": "Cores",
+        "TYPOGRAPHY": "Tipografia",
+        "PAGE_HEADER": "Cabeçalho de página",
+        "KPI_CARD": "Cards de KPI",
+        "STATUS_BADGE": "Badges de status",
+        "SKELETON": "Skeleton",
+        "BUTTONS": "Botões"
+      },
+      "GROUPS": {
+        "SURFACES": "Superfícies e bordas",
+        "TEXT": "Texto",
+        "BRAND": "Marca e foco",
+        "STATES": "Estados",
+        "CHART": "Paleta de gráficos",
+        "AGENTS": "Identidade dos agentes"
+      },
+      "CHART_ROLES": {
+        "CHART_1": "Métrica principal",
+        "CHART_2": "Ganho e receita",
+        "CHART_3": "Neutro",
+        "CHART_4": "Alerta e pendência",
+        "CHART_5": "Perda",
+        "CHART_6": "Projeção",
+        "CHART_7": "Categoria",
+        "CHART_8": "Secundário"
+      },
+      "FONTS": {
+        "DISPLAY": "Display · Space Grotesk — títulos e números de KPI",
+        "SANS": "Texto · Inter — corpo e interface",
+        "MONO": "Mono · JetBrains Mono — códigos e IDs"
+      },
+      "TEXT_SAMPLE": "Aa",
+      "TYPE_SAMPLE": "A Elisa qualificou 42 leads hoje",
+      "EXAMPLES": {
+        "PAGE_TITLE": "Dashboard Executivo",
+        "PAGE_DESCRIPTION": "KPIs dos últimos 30 dias",
+        "ACTION": "Exportar"
+      },
+      "BUTTONS": {
+        "PRIMARY": "Primário",
+        "OUTLINE": "Contorno",
+        "GHOST": "Discreto",
+        "DANGER": "Excluir",
+        "LOADING": "Salvando…",
+        "DISABLED": "Desabilitado",
+        "SMALL": "Pequeno",
+        "MEDIUM": "Médio",
+        "LARGE": "Grande"
+      }
+    },
+    "MESSAGES": {
+      "SENDER_AI": "{name} · IA",
+      "TODAY": "Hoje",
+      "YESTERDAY": "Ontem",
+      "ACTIONS": "Ações da mensagem",
+      "RETRY": "Tentar reenviar"
     },
     "SUPPORT": {
       "TITLE": "Suporte",

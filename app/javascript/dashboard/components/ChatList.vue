@@ -31,6 +31,8 @@ import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
 import IntersectionObserver from 'dashboard/components/IntersectionObserver.vue';
 import ConversationResolveAttributesModal from 'dashboard/components-next/ConversationWorkflow/ConversationResolveAttributesModal.vue';
+import SynapseEmptyState from 'dashboard/components-next/synapseos/SynapseEmptyState.vue';
+import { useLeadStagesStore } from 'dashboard/store/synapseos/useLeadStages';
 
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useAlert } from 'dashboard/composables';
@@ -79,6 +81,14 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['conversationLoad']);
+
+// CUSTOMIZAÇÃO_SYNAPSEOS — aba "Precisa de você": filtrada no servidor
+// (assignee_type=needs_human, ver Synapseos::ConversationFinderExtension).
+const NEEDS_HUMAN_TAB = 'needs_human';
+// Mesma ordem do servidor: espera do cliente, mais antiga primeiro.
+const customerWaitingSince = c => c.waiting_since || c.last_activity_at;
+const byCustomerWaiting = (a, b) =>
+  customerWaitingSince(a) - customerWaitingSince(b);
 const { uiSettings } = useUISettings();
 const { t } = useI18n();
 const router = useRouter();
@@ -133,6 +143,7 @@ const getTeamFn = useMapGetter('teams/getTeam');
 const getConversationById = useMapGetter('getConversationById');
 
 useChatListKeyboardEvents(conversationListRef);
+const leadStages = useLeadStagesStore();
 const {
   selectedConversations,
   selectedInboxes,
@@ -197,27 +208,39 @@ const userPermissions = computed(() => {
 });
 
 const assigneeTabItems = computed(() => {
-  return (
-    filterItemsByPermission(
-      ASSIGNEE_TYPE_TAB_PERMISSIONS,
-      userPermissions.value,
-      item => item.permissions
-    )
-      .map(({ key, count: countKey }) => ({
-        key,
-        name: t(`CHAT_LIST.ASSIGNEE_TYPE_TABS.${key}`),
-        count: conversationStats.value[countKey] || 0,
-      }))
-      // CUSTOMIZAÇÃO_SYNAPSEOS: oculta a aba "Não atribuídos" — só Minhas + Todos
-      // (default = Todos). Cliente não usa o filtro de não-atribuídos.
-      .filter(item => item.key !== 'unassigned')
-  );
+  const tabs = filterItemsByPermission(
+    ASSIGNEE_TYPE_TAB_PERMISSIONS,
+    userPermissions.value,
+    item => item.permissions
+  )
+    .map(({ key, count: countKey }) => ({
+      key,
+      name: t(`CHAT_LIST.ASSIGNEE_TYPE_TABS.${key}`),
+      count: conversationStats.value[countKey] || 0,
+    }))
+    // CUSTOMIZAÇÃO_SYNAPSEOS: oculta a aba "Não atribuídos" — só Minhas + Todos
+    // (default = Todos). Cliente não usa o filtro de não-atribuídos.
+    .filter(item => item.key !== 'unassigned');
+  // CUSTOMIZAÇÃO_SYNAPSEOS: + "Precisa de você", depois de Minhas/Todos
+  return [
+    ...tabs,
+    {
+      key: NEEDS_HUMAN_TAB,
+      name: t('SYNAPSEOS.CHAT_LIST.TABS.NEEDS_HUMAN'),
+      count: conversationStats.value.needsHumanCount || 0,
+    },
+  ];
 });
+
+const isOnNeedsHumanTab = computed(
+  () => activeAssigneeTab.value === NEEDS_HUMAN_TAB
+);
 
 const showAssigneeInConversationCard = computed(() => {
   return (
     hasAppliedFiltersOrActiveFolders.value ||
-    activeAssigneeTab.value === wootConstants.ASSIGNEE_TYPE.ALL
+    activeAssigneeTab.value === wootConstants.ASSIGNEE_TYPE.ALL ||
+    isOnNeedsHumanTab.value
   );
 });
 
@@ -246,7 +269,10 @@ const conversationCustomAttributes = useFunctionGetter(
   'conversation_attribute'
 );
 
-const conversationListPagination = computed(() => currentPage.value + 1);
+const conversationListPagination = computed(
+  // CUSTOMIZAÇÃO_SYNAPSEOS: a store de páginas não conhece a aba needs_human
+  () => (currentPage.value || 0) + 1
+);
 const listError = ref(false);
 
 const conversationFilters = computed(() => {
@@ -326,6 +352,14 @@ const conversationList = computed(() => {
       localConversationList = [...mineChatsList.value(filters)];
     } else if (activeAssigneeTab.value === 'unassigned') {
       localConversationList = [...unAssignedChatsList.value(filters)];
+    } else if (isOnNeedsHumanTab.value) {
+      // CUSTOMIZAÇÃO_SYNAPSEOS: a store só tem o que o servidor filtrou (ela é
+      // recarregada ao entrar/sair da aba); some com o que chega por websocket
+      // com estágio conhecido que não precisa de humano.
+      localConversationList = allChatList
+        .value(filters)
+        .filter(c => leadStages.needsHuman(c.id) !== false)
+        .sort(byCustomerWaiting);
     } else {
       localConversationList = [...allChatList.value(filters)];
     }
@@ -563,6 +597,7 @@ function resetAndFetchData() {
   listError.value = false;
   appliedFilter.value = [];
   resetBulkActions();
+  leadStages.reset();
   store.dispatch('conversationPage/reset');
   store.dispatch('emptyAllConversations');
   store.dispatch('clearConversationFilters');
@@ -605,8 +640,15 @@ function updateAssigneeTab(selectedTab) {
   if (activeAssigneeTab.value !== selectedTab) {
     resetBulkActions();
     emitter.emit('clearSearchInput');
+    // CUSTOMIZAÇÃO_SYNAPSEOS: "Precisa de você" vem filtrada do servidor, então
+    // entrar ou sair dela recarrega a lista em vez de reaproveitar a store.
+    const togglesNeedsHuman = [activeAssigneeTab.value, selectedTab].includes(
+      NEEDS_HUMAN_TAB
+    );
     activeAssigneeTab.value = selectedTab;
-    if (!currentPage.value) {
+    if (togglesNeedsHuman) {
+      resetAndFetchData();
+    } else if (!currentPage.value) {
       fetchConversations();
     }
   }
@@ -878,6 +920,18 @@ watch(chatLists, () => {
   chatsOnView.value = conversationList.value;
 });
 
+// CUSTOMIZAÇÃO_SYNAPSEOS: estágios em lote de tudo que a lista pode mostrar
+// (inclui o que a aba "Precisa de você" ainda vai filtrar pelo estágio). Lê
+// last_activity_at aqui para reagir a mensagens novas (o estágio muda junto).
+watch(
+  () =>
+    (hasAppliedFiltersOrActiveFolders.value
+      ? conversationList.value
+      : allChatList.value(conversationFilters.value)
+    ).map(({ id, last_activity_at }) => ({ id, last_activity_at })),
+  list => leadStages.ensure(list)
+);
+
 watch(conversationFilters, (newVal, oldVal) => {
   if (newVal !== oldVal) {
     store.dispatch('updateChatListFilters', newVal);
@@ -890,9 +944,10 @@ watch(conversationFilters, (newVal, oldVal) => {
     class="flex flex-col flex-shrink-0 min-h-0 conversations-list-wrap bg-s-surface border-r border-s-border-subtle"
     :class="[
       { hidden: !showConversationList },
-      isOnExpandedLayout ? 'basis-full' : 'w-[340px] 2xl:w-[380px] max-w-full',
+      isOnExpandedLayout ? 'basis-full' : 'w-full md:w-[340px] 2xl:w-[380px]',
     ]"
   >
+    <!-- CUSTOMIZAÇÃO_SYNAPSEOS: largura total abaixo de md (painel único no mobile) -->
     <slot />
     <ChatListHeader
       :page-title="pageTitle"
@@ -938,12 +993,20 @@ watch(conversationFilters, (newVal, oldVal) => {
       @chat-tab-change="updateAssigneeTab"
     />
 
-    <p
-      v-if="!chatListLoading && !conversationList.length"
-      class="flex overflow-auto justify-center items-center p-4"
-    >
-      {{ $t('CHAT_LIST.LIST.404') }}
-    </p>
+    <SynapseEmptyState
+      v-if="!chatListLoading && !conversationList.length && isOnNeedsHumanTab"
+      icon="i-lucide-circle-check"
+      :title="$t('SYNAPSEOS.CHAT_LIST.EMPTY.NEEDS_HUMAN_TITLE')"
+      :description="$t('SYNAPSEOS.CHAT_LIST.EMPTY.NEEDS_HUMAN_DESCRIPTION')"
+      class="px-4"
+    />
+    <SynapseEmptyState
+      v-else-if="!chatListLoading && !conversationList.length"
+      icon="i-lucide-inbox"
+      :title="$t('SYNAPSEOS.CHAT_LIST.EMPTY.TITLE')"
+      :description="$t('CHAT_LIST.LIST.404')"
+      class="px-4"
+    />
     <ConversationBulkActions
       v-if="selectedConversations.length"
       :conversations="selectedConversations"

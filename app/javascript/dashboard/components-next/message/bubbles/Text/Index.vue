@@ -44,7 +44,7 @@ const handleSeeOriginal = () => {
 <template>
   <BaseBubble class="px-4 py-3" data-bubble-name="text">
     <div class="gap-3 flex flex-col">
-      <span v-if="isEmpty" class="text-s-muted">
+      <span v-if="isEmpty" class="opacity-70">
         {{ $t('CONVERSATION.NO_CONTENT') }}
       </span>
       <FormattedContent v-if="renderContent" :content="renderContent" />

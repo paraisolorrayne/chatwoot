@@ -2,6 +2,7 @@
 import { MESSAGE_TYPE } from 'widget/helpers/constants';
 import { useMessageFormatter } from 'shared/composables/useMessageFormatter';
 import { ATTACHMENT_ICONS } from 'shared/constants/messages';
+import { agentClasses } from 'dashboard/helper/synapseos/agentIdentity';
 
 export default {
   name: 'MessagePreview',
@@ -29,6 +30,24 @@ export default {
     messageByAgent() {
       const { message_type: messageType } = this.message;
       return messageType === MESSAGE_TYPE.OUTGOING;
+    },
+    // CUSTOMIZAÇÃO_SYNAPSEOS — quem mandou a última mensagem: IA (na cor do
+    // agente) ou consultor humano. Mensagem do cliente fica sem ícone.
+    isSentByBot() {
+      return this.messageByAgent && this.message.sender?.type === 'agent_bot';
+    },
+    isSentByHuman() {
+      return this.messageByAgent && this.message.sender?.type === 'user';
+    },
+    senderLabel() {
+      const name = this.message.sender?.name;
+      return this.isSentByBot
+        ? this.$t('SYNAPSEOS.CHAT_LIST.LAST_SENDER.AI', { name })
+        : this.$t('SYNAPSEOS.CHAT_LIST.LAST_SENDER.HUMAN', { name });
+    },
+    botColorClass() {
+      const { squadron_role: squadronRole, name } = this.message.sender;
+      return agentClasses({ squadronRole, name }).text;
     },
     isMessageAnActivity() {
       const { message_type: messageType } = this.message;
@@ -68,6 +87,21 @@ export default {
         size="16"
         class="-mt-0.5 align-middle text-s-muted inline-block"
         icon="lock-closed"
+      />
+      <span
+        v-else-if="isSentByBot"
+        v-tooltip.top="senderLabel"
+        role="img"
+        :aria-label="senderLabel"
+        class="i-lucide-sparkles size-3.5 -mt-0.5 align-middle inline-block"
+        :class="botColorClass"
+      />
+      <span
+        v-else-if="isSentByHuman"
+        v-tooltip.top="senderLabel"
+        role="img"
+        :aria-label="senderLabel"
+        class="i-lucide-user size-3.5 -mt-0.5 align-middle inline-block text-s-secondary"
       />
       <fluent-icon
         v-else-if="messageByAgent"

@@ -57,6 +57,8 @@ import { isFileTypeAllowedForChannel } from 'shared/helpers/FileHelper';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 import { LocalStorage } from 'shared/helpers/localStorage';
 import { emitter } from 'shared/helpers/mitt';
+// CUSTOMIZAÇÃO_SYNAPSEOS: "Assumir conversa" no header foca o editor de resposta.
+import { FOCUS_REPLY_EDITOR } from './synapseos/useBotControl';
 const EmojiInput = defineAsyncComponent(
   () => import('shared/components/emoji/EmojiInput.vue')
 );
@@ -519,6 +521,7 @@ export default {
     );
     emitter.on(BUS_EVENTS.INSERT_INTO_NORMAL_EDITOR, this.addIntoEditor);
     emitter.on(CMD_AI_ASSIST, this.executeCopilotAction);
+    emitter.on(FOCUS_REPLY_EDITOR, this.focusReplyEditor);
   },
   unmounted() {
     document.removeEventListener('paste', this.onPaste);
@@ -530,6 +533,7 @@ export default {
       this.onNewConversationModalActive
     );
     emitter.off(CMD_AI_ASSIST, this.executeCopilotAction);
+    emitter.off(FOCUS_REPLY_EDITOR, this.focusReplyEditor);
   },
   methods: {
     getDraftKey(
@@ -1215,6 +1219,10 @@ export default {
     },
     toggleEditorSize() {
       this.$emit('toggleEditorSize');
+      this.$nextTick(() => this.messageEditor?.focusEditorInputField());
+    },
+    focusReplyEditor() {
+      if (this.isOnPrivateNote) this.setReplyMode(REPLY_EDITOR_MODES.REPLY);
       this.$nextTick(() => this.messageEditor?.focusEditorInputField());
     },
     onSubmitCopilotReply() {

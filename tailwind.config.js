@@ -44,10 +44,11 @@ const tailwindConfig = {
         // Inter fica como fallback se Google Fonts não carregar.
         // 'font-inter' está em ~9 lugares do _woot.scss; reusamos a chave pra
         // não precisar refatorar e ativar Open Sans globalmente.
-        inter: ['Open Sans', 'Inter', ...defaultSansFonts],
-        interDisplay: ['Montserrat', 'InterDisplay', ...defaultSansFonts],
-        synapse: ['Open Sans', 'Inter', ...defaultSansFonts],
-        'synapse-display': ['Montserrat', 'Open Sans', ...defaultSansFonts],
+        inter: ['Inter', ...defaultSansFonts],
+        interDisplay: ['"Space Grotesk"', 'InterDisplay', ...defaultSansFonts],
+        synapse: ['Inter', ...defaultSansFonts],
+        'synapse-display': ['"Space Grotesk"', 'Inter', ...defaultSansFonts],
+        mono: ['"JetBrains Mono"', ...defaultTheme.fontFamily.mono],
       },
       boxShadow: {
         // CUSTOMIZAÇÃO_SYNAPSEOS — duas camadas, sutis mas visíveis em retina
@@ -57,7 +58,7 @@ const tailwindConfig = {
       },
       ringColor: {
         // CUSTOMIZAÇÃO_SYNAPSEOS — focus ring padrão
-        focus: 'rgb(var(--s-focus) / 0.3)',
+        focus: 'rgb(var(--s-focus) / <alpha-value>)',
       },
       fontWeight: {
         420: '420',
@@ -68,7 +69,7 @@ const tailwindConfig = {
       typography: {
         bubble: {
           css: {
-            color: 'rgb(var(--slate-12))',
+            color: 'inherit',
             lineHeight: '1.6',
             fontSize: '14px',
             '*': {
@@ -79,17 +80,17 @@ const tailwindConfig = {
             overflowWrap: 'anywhere',
 
             strong: {
-              color: 'rgb(var(--slate-12))',
+              color: 'inherit',
               fontWeight: '700',
             },
 
             b: {
-              color: 'rgb(var(--slate-12))',
+              color: 'inherit',
               fontWeight: '700',
             },
 
             h1: {
-              color: 'rgb(var(--slate-12))',
+              color: 'inherit',
               fontWeight: '700',
               fontSize: '1.25rem',
               '&:first-child': {
@@ -97,7 +98,7 @@ const tailwindConfig = {
               },
             },
             h2: {
-              color: 'rgb(var(--slate-12))',
+              color: 'inherit',
               fontWeight: '700',
               fontSize: '1rem',
               '&:first-child': {
@@ -105,7 +106,7 @@ const tailwindConfig = {
               },
             },
             h3: {
-              color: 'rgb(var(--slate-12))',
+              color: 'inherit',
               fontWeight: '700',
               fontSize: '1rem',
               '&:first-child': {
@@ -117,7 +118,7 @@ const tailwindConfig = {
               marginBottom: '1.5em',
             },
             a: {
-              color: 'rgb(var(--slate-12))',
+              color: 'inherit',
               textDecoration: 'underline',
             },
             ul: {
@@ -180,7 +181,7 @@ const tailwindConfig = {
             },
             th: {
               padding: '0.75em',
-              color: 'rgb(var(--slate-12))',
+              color: 'inherit',
               border: `none`,
               textAlign: 'start',
               fontWeight: '600',
@@ -259,6 +260,27 @@ const tailwindConfig = {
         '50%': { transform: 'translateX(-0.234375rem)' },
         '75%': { transform: 'translateX(0.234375rem)' },
       },
+      // CUSTOMIZAÇÃO_SYNAPSEOS — movimento do design system Fykos.
+      's-fade-in': {
+        '0%': { opacity: 0 },
+        '100%': { opacity: 1 },
+      },
+      's-scale-in': {
+        '0%': { opacity: 0, transform: 'scale(0.97)' },
+        '100%': { opacity: 1, transform: 'scale(1)' },
+      },
+      's-slide-in-right': {
+        '0%': { opacity: 0, transform: 'translateX(1rem)' },
+        '100%': { opacity: 1, transform: 'translateX(0)' },
+      },
+      's-skeleton': {
+        '0%, 100%': { opacity: 1 },
+        '50%': { opacity: 0.45 },
+      },
+      's-flash': {
+        '0%': { boxShadow: '0 0 0 2px rgb(var(--s-flash-color, var(--s-accent)) / 0.9)' },
+        '100%': { boxShadow: '0 0 0 2px rgb(var(--s-flash-color, var(--s-accent)) / 0)' },
+      },
     },
     animation: {
       ...defaultTheme.animation,
@@ -267,6 +289,11 @@ const tailwindConfig = {
       'loader-pulse': 'loader-pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       'card-select': 'card-select 0.25s ease-in-out',
       shake: 'shake 0.3s ease-in-out 0s 2',
+      's-fade-in': 's-fade-in 200ms ease-out',
+      's-scale-in': 's-scale-in 180ms ease-out',
+      's-slide-in-right': 's-slide-in-right 220ms ease-out',
+      's-skeleton': 's-skeleton 1.4s ease-in-out infinite',
+      's-flash': 's-flash 1.2s ease-out',
     },
   },
   plugins: [
@@ -280,7 +307,6 @@ const tailwindConfig = {
           'logos',
           'ri',
           'ph',
-          'material-symbols',
           'teenyicons',
           'fluent',
         ]),

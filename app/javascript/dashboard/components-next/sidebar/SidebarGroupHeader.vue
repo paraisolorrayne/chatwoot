@@ -32,10 +32,10 @@ const count = computed(() =>
     :to="to"
     :title="label"
     :class="{
-      'bg-s-brand-800 text-s-on-dark ltr:pl-[9px] rtl:pr-[9px] ltr:pr-3 rtl:pl-3 ltr:border-l-[3px] rtl:border-r-[3px] border-s-accent-500':
+      'bg-s-brand-soft text-s-brand-text font-medium ltr:pl-[9px] rtl:pr-[9px] ltr:pr-3 rtl:pl-3 ltr:border-l-[3px] rtl:border-r-[3px] border-s-accent-500':
         isActive && !hasActiveChild,
       'text-s-on-dark px-3': hasActiveChild,
-      'text-s-on-dark-muted hover:bg-white/[0.06] hover:text-s-on-dark px-3':
+      'text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark px-3':
         !isActive && !hasActiveChild,
     }"
     @click.stop="emit('toggle')"

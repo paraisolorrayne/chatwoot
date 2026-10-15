@@ -51,9 +51,9 @@ export default {
     const conversationPanelRef = ref(null);
     const resizableEditorWrapperRef = ref(null);
     const messagesViewRef = useTemplateRef('messagesViewRef');
-    const topBannerRef = useTemplateRef('topBannerRef');
+    const replyBannerRef = useTemplateRef('replyBannerRef');
     const { height: containerHeight } = useElementSize(messagesViewRef);
-    const { height: topBannerHeight } = useElementSize(topBannerRef);
+    const { height: replyBannerHeight } = useElementSize(replyBannerRef);
 
     const {
       captainTasksEnabled,
@@ -70,9 +70,9 @@ export default {
       conversationPanelRef,
       resizableEditorWrapperRef,
       messagesViewRef,
-      topBannerRef,
+      replyBannerRef,
       containerHeight,
-      topBannerHeight,
+      replyBannerHeight,
     };
   },
   data() {
@@ -453,22 +453,6 @@ export default {
     ref="messagesViewRef"
     class="flex flex-col justify-between flex-grow h-full min-w-0 m-0"
   >
-    <div ref="topBannerRef">
-      <Banner
-        v-if="!currentChat.can_reply"
-        color-scheme="alert"
-        class="mx-2 mt-2 overflow-hidden rounded-lg"
-        :banner-message="replyWindowBannerMessage"
-        :href-link="replyWindowLink"
-        :href-link-text="replyWindowLinkText"
-      />
-      <Banner
-        v-else-if="hasDuplicateInstagramInbox"
-        color-scheme="alert"
-        class="mx-2 mt-2 overflow-hidden rounded-lg"
-        :banner-message="$t('CONVERSATION.OLD_INSTAGRAM_INBOX_REPLY_BANNER')"
-      />
-    </div>
     <MessageList
       ref="conversationPanelRef"
       class="conversation-panel flex-shrink flex-grow basis-px flex flex-col overflow-y-auto relative h-full m-0 pb-4"
@@ -495,7 +479,7 @@ export default {
           class="list-none flex justify-center items-center"
         >
           <span
-            class="shadow-lg rounded-full bg-s-brand text-white text-xs font-medium my-2.5 mx-auto px-2.5 py-1.5"
+            class="shadow-lg rounded-full bg-s-brand text-s-on-brand text-xs font-medium my-2.5 mx-auto px-2.5 py-1.5"
           >
             {{ unreadMessageLabel }}
           </span>
@@ -522,13 +506,30 @@ export default {
           <img
             class="w-6 ltr:ml-2 rtl:mr-2"
             src="assets/images/typing.gif"
-            alt="Someone is typing"
+            :alt="$t('SYNAPSEOS.CONVERSATION.TYPING_INDICATOR_ALT')"
           />
         </div>
       </div>
+      <!-- CUSTOMIZAÇÃO_SYNAPSEOS: avisos de janela de resposta logo acima do editor, sem cobrir as mensagens. -->
+      <div ref="replyBannerRef">
+        <Banner
+          v-if="!currentChat.can_reply"
+          color-scheme="alert"
+          class="mx-2 mt-2 overflow-hidden rounded-lg"
+          :banner-message="replyWindowBannerMessage"
+          :href-link="replyWindowLink"
+          :href-link-text="replyWindowLinkText"
+        />
+        <Banner
+          v-else-if="hasDuplicateInstagramInbox"
+          color-scheme="alert"
+          class="mx-2 mt-2 overflow-hidden rounded-lg"
+          :banner-message="$t('CONVERSATION.OLD_INSTAGRAM_INBOX_REPLY_BANNER')"
+        />
+      </div>
       <ResizableEditorWrapper
         ref="resizableEditorWrapperRef"
-        :container-height="Math.max(0, containerHeight - topBannerHeight)"
+        :container-height="Math.max(0, containerHeight - replyBannerHeight)"
       >
         <ReplyBox @toggle-editor-size="toggleReplyEditorSize" />
       </ResizableEditorWrapper>

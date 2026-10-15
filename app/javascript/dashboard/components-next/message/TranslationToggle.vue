@@ -10,8 +10,10 @@ defineEmits(['toggle']);
 
 <template>
   <span>
-    <span
-      class="text-xs text-s-muted cursor-pointer hover:underline select-none"
+    <!-- CUSTOMIZAÇÃO_SYNAPSEOS: herda a cor do bubble e é acessível por teclado. -->
+    <button
+      type="button"
+      class="p-0 text-xs opacity-70 cursor-pointer hover:underline focus-visible:underline focus-visible:outline-none select-none"
       @click="$emit('toggle')"
     >
       {{
@@ -19,6 +21,6 @@ defineEmits(['toggle']);
           ? $t('CONVERSATION.VIEW_TRANSLATED')
           : $t('CONVERSATION.VIEW_ORIGINAL')
       }}
-    </span>
+    </button>
   </span>
 </template>

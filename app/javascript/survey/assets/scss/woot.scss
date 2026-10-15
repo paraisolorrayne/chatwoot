@@ -4,6 +4,8 @@
 @import 'widget/assets/scss/reset';
 @import 'shared/assets/fonts/widget_fonts';
 @import 'dashboard/assets/scss/next-colors';
+// CUSTOMIZAÇÃO_SYNAPSEOS — a pesquisa CSAT usa classes s-*.
+@import 'dashboard/assets/scss/synapseos_tokens';
 
 html,
 body {

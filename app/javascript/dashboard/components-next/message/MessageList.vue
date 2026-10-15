@@ -1,7 +1,9 @@
 <script setup>
 import { defineProps, computed, reactive } from 'vue';
+import { useI18n } from 'vue-i18n';
 import Message from './Message.vue';
 import { MESSAGE_TYPES } from './constants.js';
+import { formatDayLabel, isDifferentDay } from './messageTime';
 import { useCamelCase } from 'dashboard/composables/useTransformKeys';
 import { useMapGetter } from 'dashboard/composables/store.js';
 import MessageApi from 'dashboard/api/inbox/message.js';
@@ -102,11 +104,15 @@ const shouldGroupWithNext = (index, searchList) => {
   const current = searchList[index];
   const next = searchList[index + 1];
 
-  if (next.status === 'failed') return false;
+  if (current.status === 'failed' || next.status === 'failed') return false;
 
-  const nextSenderId = next.senderId ?? next.sender?.id;
-  const currentSenderId = current.senderId ?? current.sender?.id;
-  const hasSameSender = nextSenderId === currentSenderId;
+  // CUSTOMIZAÇÃO_SYNAPSEOS — o id sozinho não identifica o remetente (AgentBot
+  // #15 e User #15 se fundiam); compara tipo + id e não mistura nota privada
+  // com mensagem pública.
+  const senderKey = message =>
+    `${message.sender?.type ?? message.senderType}:${message.senderId ?? message.sender?.id}`;
+  const hasSameSender =
+    senderKey(next) === senderKey(current) && next.private === current.private;
 
   const nextMessageType = next.messageType;
   const currentMessageType = current.messageType;
@@ -122,6 +128,23 @@ const shouldGroupWithNext = (index, searchList) => {
   // Check if messages are in the same minute by rounding down to nearest minute
   return Math.floor(next.createdAt / 60) === Math.floor(current.createdAt / 60);
 };
+
+// CUSTOMIZAÇÃO_SYNAPSEOS — separador de dias ("Hoje", "Ontem", "12 de out.")
+// antes da primeira mensagem de cada dia.
+const { t, locale } = useI18n();
+const daySeparators = computed(() =>
+  allMessages.value.map((message, index) => {
+    const previous = allMessages.value[index - 1];
+    if (previous && !isDifferentDay(message.createdAt, previous.createdAt)) {
+      return '';
+    }
+
+    return formatDayLabel(message.createdAt, locale.value, {
+      today: t('SYNAPSEOS.MESSAGES.TODAY'),
+      yesterday: t('SYNAPSEOS.MESSAGES.YESTERDAY'),
+    });
+  })
+);
 
 /**
  * Gets the message that was replied to
@@ -166,6 +189,14 @@ const getInReplyToMessage = parentMessage => {
   <ul class="px-3 sm:px-4 md:px-6 bg-s-surface">
     <slot name="beforeAll" />
     <template v-for="(message, index) in allMessages" :key="message.id">
+      <li
+        v-if="daySeparators[index]"
+        class="flex items-center gap-3 my-3 list-none text-xs text-s-muted"
+      >
+        <span class="flex-1 h-px bg-s-border" aria-hidden="true" />
+        <span>{{ daySeparators[index] }}</span>
+        <span class="flex-1 h-px bg-s-border" aria-hidden="true" />
+      </li>
       <slot
         v-if="firstUnreadId && message.id === firstUnreadId"
         name="unreadBadge"
@@ -175,6 +206,9 @@ const getInReplyToMessage = parentMessage => {
         :is-email-inbox="isAnEmailChannel"
         :in-reply-to="getInReplyToMessage(message)"
         :group-with-next="shouldGroupWithNext(index, allMessages)"
+        :group-with-previous="
+          index > 0 && shouldGroupWithNext(index - 1, allMessages)
+        "
         :inbox-supports-reply-to="inboxSupportsReplyTo"
         :current-user-id="currentUserId"
         data-clarity-mask="True"

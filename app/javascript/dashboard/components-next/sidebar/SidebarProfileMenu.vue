@@ -131,9 +131,9 @@ const allowedMenuItems = computed(() => {
   >
     <template #trigger="{ toggle, isOpen }">
       <button
-        class="flex gap-2 items-center p-1 text-left rounded-lg cursor-pointer hover:bg-white/[0.06] transition-colors"
+        class="flex gap-2 items-center p-1 text-left rounded-lg cursor-pointer hover:bg-s-nav-hover transition-colors"
         :class="[
-          { 'bg-white/[0.06]': isOpen },
+          { 'bg-s-subtle': isOpen },
           isCollapsed ? 'justify-center' : 'w-full',
         ]"
         :title="isCollapsed ? currentUser.available_name : undefined"

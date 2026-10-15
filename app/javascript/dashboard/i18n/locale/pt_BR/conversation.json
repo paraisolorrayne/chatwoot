@@ -371,7 +371,6 @@
     },
     "SYSTEM_LEGADO": {
       "TITLE": "Dados do Sistema Legado",
-      "EMPTY": "Sem dados do ERP ainda.",
       "ULTIMA_REVISAO": "Última Revisão",
       "CARRO_ATUAL": "Carro Atual",
       "PROPENSAO_TROCA": "Propensão de Troca"

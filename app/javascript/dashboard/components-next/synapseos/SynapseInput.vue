@@ -28,10 +28,8 @@ const hasIconTrailing = computed(() => !!props.iconTrailing);
     <div class="relative">
       <span
         v-if="hasIconLeading"
-        :class="[
-          'absolute left-3 top-1/2 -translate-y-1/2 size-4 text-s-muted pointer-events-none',
-          iconLeading,
-        ]"
+        class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-s-muted pointer-events-none"
+        :class="[iconLeading]"
       />
       <input
         :id="id"
@@ -39,23 +37,20 @@ const hasIconTrailing = computed(() => !!props.iconTrailing);
         :value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
+        class="reset-base w-full bg-s-surface border rounded-lg h-10 text-sm text-s-primary transition-all duration-150 ease-out placeholder:text-s-disabled focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-0 focus:border-s-brand disabled:bg-s-subtle disabled:cursor-not-allowed disabled:text-s-disabled"
         :class="[
-          'w-full bg-s-surface border rounded-lg h-10 text-sm text-s-primary transition-all duration-150 ease-out',
-          'placeholder:text-s-disabled',
-          'focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-0 focus:border-s-brand',
-          'disabled:bg-s-subtle disabled:cursor-not-allowed disabled:text-s-disabled',
           hasIconLeading ? 'pl-10' : 'pl-3',
           hasIconTrailing ? 'pr-10' : 'pr-3',
-          error ? 'border-s-error focus:ring-s-error/30 focus:border-s-error' : 'border-s-border hover:border-s-border-strong',
+          error
+            ? 'border-s-error focus:ring-s-error/30 focus:border-s-error'
+            : 'border-s-border hover:border-s-border-strong',
         ]"
         @input="$emit('update:modelValue', $event.target.value)"
-      >
+      />
       <span
         v-if="hasIconTrailing"
-        :class="[
-          'absolute right-3 top-1/2 -translate-y-1/2 size-4 text-s-muted pointer-events-none',
-          iconTrailing,
-        ]"
+        class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-s-muted pointer-events-none"
+        :class="[iconTrailing]"
       />
     </div>
     <span v-if="error" class="text-xs text-s-error-text">{{ error }}</span>

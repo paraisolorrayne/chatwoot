@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import { useWindowSize } from '@vueuse/core';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useAccount } from 'dashboard/composables/useAccount';
 import ChatList from '../../../components/ChatList.vue';
@@ -8,7 +9,6 @@ import wootConstants from 'dashboard/constants/globals';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
 import CmdBarConversationSnooze from 'dashboard/routes/dashboard/commands/CmdBarConversationSnooze.vue';
 import { emitter } from 'shared/helpers/mitt';
-import SidepanelSwitch from 'dashboard/components-next/Conversation/SidepanelSwitch.vue';
 import ConversationSidebar from 'dashboard/components/widgets/conversation/ConversationSidebar.vue';
 
 export default {
@@ -16,7 +16,6 @@ export default {
     ChatList,
     ConversationBox,
     CmdBarConversationSnooze,
-    SidepanelSwitch,
     ConversationSidebar,
   },
   beforeRouteLeave(to, from, next) {
@@ -56,11 +55,13 @@ export default {
   setup() {
     const { uiSettings, updateUISettings } = useUISettings();
     const { accountId } = useAccount();
+    const { width: windowWidth } = useWindowSize();
 
     return {
       uiSettings,
       updateUISettings,
       accountId,
+      windowWidth,
     };
   },
   data() {
@@ -80,6 +81,9 @@ export default {
       return this.conversationId ? true : !this.isOnExpandedLayout;
     },
     isOnExpandedLayout() {
+      // CUSTOMIZAÇÃO_SYNAPSEOS: abaixo de md é sempre painel único (lista OU
+      // conversa, com o botão voltar do header), sem depender do ui_settings.
+      if (this.windowWidth < wootConstants.SMALL_SCREEN_BREAKPOINT) return true;
       const {
         LAYOUT_TYPES: { CONDENSED },
       } = wootConstants;
@@ -210,9 +214,7 @@ export default {
       v-if="showMessageView"
       :inbox-id="inboxId"
       :is-on-expanded-layout="isOnExpandedLayout"
-    >
-      <SidepanelSwitch v-if="currentChat.id" />
-    </ConversationBox>
+    />
     <ConversationSidebar v-if="shouldShowSidebar" :current-chat="currentChat" />
     <CmdBarConversationSnooze />
   </section>

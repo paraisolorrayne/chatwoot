@@ -22,8 +22,8 @@ const target = computed(() => ({
     :to="target"
     :title="t('SIDEBAR_ITEMS.NOTIFICATIONS')"
     :aria-label="t('SIDEBAR_ITEMS.NOTIFICATIONS')"
-    class="flex items-center justify-center size-9 rounded-lg border border-white/10 bg-white/[0.06] text-s-on-dark-muted hover:bg-white/10 hover:text-s-on-dark transition-colors flex-shrink-0 relative"
-    active-class="!bg-s-brand-800 !text-s-on-dark !border-s-accent-500"
+    class="flex items-center justify-center size-9 rounded-lg border border-s-border bg-s-subtle text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark transition-colors flex-shrink-0 relative"
+    active-class="!bg-s-brand-soft !text-s-brand-text !border-s-accent-500"
   >
     <span class="i-lucide-bell size-4" />
   </RouterLink>

@@ -26,7 +26,8 @@ class Api::V1::Accounts::Synapseos::LeadsController < Api::V1::Accounts::BaseCon
     @lead = conv && scope.find_by(conversation_id: conv.id)
     return render(json: { error: 'lead not found for conversation' }, status: :not_found) unless @lead
 
-    render :show
+    # CUSTOMIZAÇÃO_SYNAPSEOS: card do lead no painel da conversa mostra o último resumo de handoff.
+    @handoff_event = latest_handoff_event(conv)
   end
 
   # POST /synapseos/leads/upsert_by_conversation
@@ -48,6 +49,7 @@ class Api::V1::Accounts::Synapseos::LeadsController < Api::V1::Accounts::BaseCon
       unless ::Synapseos::PipelineStage.column_names.include?('slug')
         return render(json: { error: 'pipeline_stage has no slug column on this deployment' }, status: :unprocessable_entity)
       end
+
       stage = ::Synapseos::PipelineStage.find_by(account_id: Current.account.id, slug: params[:stage_slug])
       return render(json: { error: "stage '#{params[:stage_slug]}' not found" }, status: :not_found) if stage.nil?
     end
@@ -58,9 +60,7 @@ class Api::V1::Accounts::Synapseos::LeadsController < Api::V1::Accounts::BaseCon
       l.source = params[:source].presence || 'n8n'
     end
     @lead.pipeline_stage_id = stage.id if stage
-    if params[:metadata].respond_to?(:to_unsafe_h)
-      @lead.metadata = (@lead.metadata || {}).deep_merge(params[:metadata].to_unsafe_h)
-    end
+    @lead.metadata = (@lead.metadata || {}).deep_merge(params[:metadata].to_unsafe_h) if params[:metadata].respond_to?(:to_unsafe_h)
     @lead.save!
     render :show
   end
@@ -136,6 +136,15 @@ class Api::V1::Accounts::Synapseos::LeadsController < Api::V1::Accounts::BaseCon
       ::Conversation.find_by(account_id: Current.account.id, id: id)
   end
 
+  # Alertas de venda são gravados pelo n8n com o display_id da conversa (id da API do Chatwoot).
+  def latest_handoff_event(conv)
+    ::Synapseos::CrmEvent
+      .where(account_id: Current.account.id, conversation_id: conv.display_id,
+             event_type: %w[sales_alert_dispatched sales_alert_approved])
+      .order(created_at: :desc)
+      .first
+  end
+
   def scope
     ::Synapseos::Lead.where(account_id: Current.account.id)
   end
@@ -144,8 +153,9 @@ class Api::V1::Accounts::Synapseos::LeadsController < Api::V1::Accounts::BaseCon
     @lead = scope.find(params[:id])
   end
 
+  # CUSTOMIZAÇÃO_SYNAPSEOS: motivo = motivo da perda escolhido no board ao soltar o card num estágio 'lost'.
   def lead_params
-    params.require(:lead).permit(:conversation_id, :contact_id, :assignee_id, :status, :source, :pipeline_stage_id, metadata: {})
+    params.require(:lead).permit(:conversation_id, :contact_id, :assignee_id, :status, :source, :pipeline_stage_id, :motivo, metadata: {})
   end
 
   def check_authorization

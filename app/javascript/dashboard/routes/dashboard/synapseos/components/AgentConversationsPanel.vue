@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, computed } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 /* global axios */
@@ -20,10 +20,14 @@ const router = useRouter();
 
 const conversations = ref([]);
 const loading = ref(false);
-const pollTimer = ref(null);
 
 const statusTone = status => {
-  const map = { open: 'success', resolved: 'neutral', pending: 'warning', snoozed: 'warning' };
+  const map = {
+    open: 'success',
+    resolved: 'neutral',
+    pending: 'warning',
+    snoozed: 'warning',
+  };
   return map[status] || 'neutral';
 };
 
@@ -38,7 +42,6 @@ const formatRelativeTime = iso => {
 };
 
 const fetchConversations = async () => {
-  if (!props.agent?.id) return;
   loading.value = true;
   try {
     const { data } = await axios.get(
@@ -64,35 +67,50 @@ const title = computed(() =>
   t('SYNAPSEOS.LIVE_AGENTS.PANEL.TITLE', { name: props.agent?.name || '' })
 );
 
-watch(() => props.agent?.id, () => {
-  fetchConversations();
-});
+watch(
+  () => props.agent.id,
+  () => {
+    conversations.value = [];
+    fetchConversations();
+  },
+  { immediate: true }
+);
 
-onMounted(() => {
-  fetchConversations();
-  pollTimer.value = setInterval(fetchConversations, 15000);
-});
-
-onBeforeUnmount(() => {
-  if (pollTimer.value) clearInterval(pollTimer.value);
-});
+// CUSTOMIZAÇÃO_SYNAPSEOS: sem timer próprio — o LiveAgentsPage chama isto no
+// mesmo polling da lista (uma fonte só, pausada com a aba oculta).
+defineExpose({ fetchConversations });
 </script>
 
 <template>
   <SynapseCard padding="none">
-    <div class="flex items-center justify-between gap-3 px-4 py-3 border-b border-s-border-subtle">
+    <div
+      class="flex items-center justify-between gap-3 px-4 py-3 border-b border-s-border-subtle"
+    >
       <div class="flex flex-col gap-0.5 min-w-0">
-        <span class="text-sm font-semibold text-s-primary truncate">{{ title }}</span>
+        <span class="text-sm font-semibold text-s-primary truncate">{{
+          title
+        }}</span>
         <span class="text-xs text-s-muted">
-          {{ t('SYNAPSEOS.LIVE_AGENTS.PANEL.COUNT', { n: conversations.length }) }}
+          {{
+            t('SYNAPSEOS.LIVE_AGENTS.PANEL.COUNT', { n: conversations.length })
+          }}
         </span>
       </div>
-      <SynapseButton size="sm" variant="ghost" icon="i-lucide-x" class="shrink-0" @click="emit('close')">
+      <SynapseButton
+        size="sm"
+        variant="ghost"
+        icon="i-lucide-x"
+        class="shrink-0"
+        @click="emit('close')"
+      >
         {{ t('SYNAPSEOS.LIVE_AGENTS.PANEL.CLOSE') }}
       </SynapseButton>
     </div>
 
-    <div v-if="loading && !conversations.length" class="px-4 py-6 text-sm text-s-muted">
+    <div
+      v-if="loading && !conversations.length"
+      class="px-4 py-6 text-sm text-s-muted"
+    >
       {{ t('SYNAPSEOS.LIVE_AGENTS.PANEL.LOADING') }}
     </div>
 
@@ -104,45 +122,57 @@ onBeforeUnmount(() => {
       class="px-4"
     />
 
-    <ul v-else class="divide-y divide-s-border-subtle max-h-[600px] overflow-auto">
-      <li
-        v-for="conv in conversations"
-        :key="conv.id"
-        class="px-4 py-3 hover:bg-s-subtle cursor-pointer flex items-start gap-3"
-        @click="openConversation(conv)"
-      >
-        <img
-          v-if="conv.contact?.thumbnail"
-          :src="conv.contact.thumbnail"
-          :alt="conv.contact.name"
-          class="rounded-full size-9 shrink-0"
+    <ul
+      v-else
+      class="divide-y divide-s-border-subtle max-h-[600px] overflow-auto"
+    >
+      <li v-for="conv in conversations" :key="conv.id">
+        <button
+          type="button"
+          class="w-full px-4 py-3 hover:bg-s-hover flex items-start gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-s-focus"
+          @click="openConversation(conv)"
         >
-        <div
-          v-else
-          class="rounded-full size-9 bg-s-subtle flex items-center justify-center text-xs text-s-secondary font-medium shrink-0"
-        >
-          {{ conv.contact?.name?.[0]?.toUpperCase() || '?' }}
-        </div>
+          <img
+            v-if="conv.contact?.thumbnail"
+            :src="conv.contact.thumbnail"
+            :alt="conv.contact.name"
+            class="rounded-full size-9 shrink-0"
+          />
+          <div
+            v-else
+            class="rounded-full size-9 bg-s-subtle flex items-center justify-center text-xs text-s-secondary font-medium shrink-0"
+          >
+            {{ conv.contact?.name?.[0]?.toUpperCase() || '?' }}
+          </div>
 
-        <div class="flex-1 min-w-0 flex flex-col gap-1">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-sm font-medium text-s-primary truncate">
-              {{ conv.contact?.name || '—' }}
+          <div class="flex-1 min-w-0 flex flex-col gap-1">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-sm font-medium text-s-primary truncate">
+                {{ conv.contact?.name || '—' }}
+              </span>
+              <span class="text-xs text-s-muted shrink-0">
+                {{ formatRelativeTime(conv.last_activity_at) }}
+              </span>
+            </div>
+            <span
+              v-if="conv.last_message?.content"
+              class="text-xs text-s-muted truncate"
+            >
+              {{ conv.last_message.content }}
             </span>
-            <span class="text-xs text-s-muted shrink-0">
-              {{ formatRelativeTime(conv.last_activity_at) }}
-            </span>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-xs text-s-muted">#{{ conv.id }}</span>
+              <SynapseStatusPill :tone="statusTone(conv.status)" size="sm">
+                {{
+                  t(
+                    `SYNAPSEOS.LIVE_AGENTS.PANEL.STATUS.${conv.status.toUpperCase()}`,
+                    conv.status
+                  )
+                }}
+              </SynapseStatusPill>
+            </div>
           </div>
-          <span v-if="conv.last_message?.content" class="text-xs text-s-muted truncate">
-            {{ conv.last_message.content }}
-          </span>
-          <div class="flex items-center gap-2 mt-0.5">
-            <span class="text-xs text-s-muted">#{{ conv.id }}</span>
-            <SynapseStatusPill :tone="statusTone(conv.status)" size="sm">
-              {{ t(`SYNAPSEOS.LIVE_AGENTS.PANEL.STATUS.${conv.status.toUpperCase()}`, conv.status) }}
-            </SynapseStatusPill>
-          </div>
-        </div>
+        </button>
       </li>
     </ul>
   </SynapseCard>

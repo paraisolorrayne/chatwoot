@@ -371,7 +371,6 @@
     },
     "SYSTEM_LEGADO": {
       "TITLE": "Legacy System Data",
-      "EMPTY": "No ERP data yet.",
       "ULTIMA_REVISAO": "Last Service",
       "CARRO_ATUAL": "Current Vehicle",
       "PROPENSAO_TROCA": "Trade-in Propensity"

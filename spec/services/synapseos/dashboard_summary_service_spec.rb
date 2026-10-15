@@ -77,4 +77,40 @@ RSpec.describe Synapseos::DashboardSummaryService do
       expect(described_class.new(account).call[:dry_run]).to be_nil
     end
   end
+
+  describe '#call previous_period' do
+    it 'calcula os KPIs de período na janela de mesmo tamanho imediatamente anterior' do
+      outgoing_to(create(:contact, account: account), at: 2.days.ago)
+      outgoing_to(create(:contact, account: account), at: 10.days.ago)
+      outgoing_to(create(:contact, account: account), at: 12.days.ago)
+      outgoing_to(create(:contact, account: account), at: 30.days.ago) # fora das duas janelas
+
+      summary = described_class.new(account, period_days: 7).call
+
+      expect(summary[:kpis][:shoots_period]).to eq(1)
+      expect(summary[:previous_period][:kpis][:shoots_period]).to eq(2)
+    end
+  end
+
+  describe '#call funnel' do
+    def incoming_in(conversation, at:)
+      create(:message, account: account, inbox: inbox, conversation: conversation,
+                       message_type: :incoming, created_at: at)
+    end
+
+    it 'conta disparos → responderam (incoming após a 1ª outgoing) → alertas → ganhos' do
+      won = create(:synapseos_pipeline_stage, account: account, stage_type: 'won')
+      replied = outgoing_to(create(:contact, account: account), at: 3.hours.ago).conversation
+      incoming_in(replied, at: 2.hours.ago)
+      silent = outgoing_to(create(:contact, account: account), at: 1.hour.ago).conversation
+      incoming_in(silent, at: 2.hours.ago) # antes do disparo: não é resposta
+      Synapseos::CrmEvent.create!(account: account, event_type: 'sales_alert_dispatched',
+                                  conversation_id: replied.id, metadata: {})
+      create(:synapseos_lead, conversation: replied, pipeline_stage_id: won.id)
+
+      funnel = described_class.new(account).call[:funnel]
+
+      expect(funnel).to eq(disparos: 2, responderam: 1, alertas: 1, ganhos: 1)
+    end
+  end
 end

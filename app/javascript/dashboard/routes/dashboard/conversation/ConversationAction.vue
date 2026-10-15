@@ -3,6 +3,7 @@
 import { mapGetters } from 'vuex';
 import { useAlert } from 'dashboard/composables';
 import { useAgentsList } from 'dashboard/composables/useAgentsList';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import ContactDetailsItem from './ContactDetailsItem.vue';
 import MultiselectDropdown from 'shared/components/ui/MultiselectDropdown.vue';
 import ConversationLabels from './labels/LabelBox.vue';
@@ -26,8 +27,11 @@ export default {
   },
   setup() {
     const { agentsList } = useAgentsList();
+    // CUSTOMIZAÇÃO_SYNAPSEOS: time e prioridade só para administradores.
+    const { isAdmin } = useAdmin();
     return {
       agentsList,
+      isAdmin,
     };
   },
   data() {
@@ -242,7 +246,7 @@ export default {
         @select="onClickAssignAgent"
       />
     </div>
-    <div>
+    <div v-if="isAdmin">
       <ContactDetailsItem
         compact
         :title="$t('CONVERSATION_SIDEBAR.TEAM_LABEL')"
@@ -261,7 +265,7 @@ export default {
         @select="onClickAssignTeam"
       />
     </div>
-    <div>
+    <div v-if="isAdmin">
       <ContactDetailsItem compact :title="$t('CONVERSATION.PRIORITY.TITLE')" />
       <MultiselectDropdown
         :options="priorityOptions"

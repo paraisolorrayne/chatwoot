@@ -214,7 +214,7 @@ onMounted(() => {
       <div ref="editor" />
       <div class="flex items-center justify-end absolute right-2 bottom-2">
         <NextButton
-          class="bg-s-brand text-white !rounded-full"
+          class="bg-s-brand text-s-on-brand !rounded-full"
           icon="i-lucide-arrow-up"
           solid
           sm

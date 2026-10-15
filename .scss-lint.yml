@@ -284,3 +284,6 @@ exclude:
   - 'app/assets/stylesheets/administrate/reset/_normalize.scss'
   - 'app/javascript/shared/assets/stylesheets/*.scss'
   - 'app/javascript/dashboard/assets/scss/_woot.scss'
+  # CUSTOMIZAÇÃO_SYNAPSEOS — tokens agrupados por função (não alfabeticamente) e
+  # seletor body.dark exigido pelo themeHelper do Chatwoot.
+  - 'app/javascript/dashboard/assets/scss/_synapseos_tokens.scss'

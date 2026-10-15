@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_17_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_07_07_000001) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -1285,6 +1285,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_17_000001) do
     t.index ["pipeline_stage_id"], name: "index_synapseos_leads_on_pipeline_stage_id"
   end
 
+  create_table "synapseos_monthly_reports", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "period", null: false
+    t.string "title"
+    t.datetime "generated_at", null: false
+    t.jsonb "data", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "period"], name: "index_synapseos_monthly_reports_on_account_id_and_period", unique: true
+    t.index ["account_id"], name: "index_synapseos_monthly_reports_on_account_id"
+  end
+
   create_table "synapseos_pipeline_stages", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.string "name", null: false
@@ -1431,6 +1443,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_17_000001) do
   add_foreign_key "synapseos_leads", "conversations"
   add_foreign_key "synapseos_leads", "synapseos_pipeline_stages", column: "pipeline_stage_id"
   add_foreign_key "synapseos_leads", "users", column: "assignee_id"
+  add_foreign_key "synapseos_monthly_reports", "accounts"
   add_foreign_key "synapseos_pipeline_stages", "accounts"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").

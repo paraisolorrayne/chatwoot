@@ -1,28 +1,5 @@
 {
   "SYNAPSEOS": {
-    "LIVE": {
-      "TITLE": "Live Agents",
-      "SUBTITLE": "Real-time squadron monitoring",
-      "AGENTS_SECTION": "Active Agents",
-      "HOT_CONVERSATIONS": "Hot Conversations",
-      "LAST_ACTION_NONE": "No recent activity",
-      "STATUS": {
-        "ONLINE": "Online",
-        "IDLE": "Idle",
-        "OFFLINE": "Offline"
-      },
-      "COLUMNS": {
-        "CONVERSATION": "Conversation",
-        "CONTACT": "Contact",
-        "ASSIGNEE": "Assignee",
-        "STATUS": "Status",
-        "TIME_IN_STAGE": "Time in stage"
-      },
-      "CABLE": {
-        "CONNECTED": "Live",
-        "POLLING": "Polling"
-      }
-    },
     "LIVE_AGENTS": {
       "TITLE": "Live Agents",
       "SUBTITLE": "Real-time view of agent activity and workload",
@@ -62,57 +39,58 @@
           "PENDING": "Pending",
           "SNOOZED": "Snoozed"
         }
+      },
+      "SEARCH_LABEL": "Search agents",
+      "ERROR": {
+        "TITLE": "Couldn't load the agents.",
+        "RETRY": "Try again"
+      },
+      "ROLE": {
+        "ADMINISTRATOR": "Administrator",
+        "AGENT": "Agent"
       }
     },
     "DASHBOARD": {
       "TITLE": "Executive Dashboard",
-      "SUBTITLE": "Operational and revenue KPIs over the last {days} days",
-      "LOADING": "Loading metrics…",
-      "NO_DATA": "No data for the selected period yet.",
+      "SUBTITLE": "Sales and operations KPIs for the last {days} days",
       "EMPTY_CHART_TITLE": "No activity yet",
-      "EMPTY_CHART_DESCRIPTION": "Receive or send messages in this period to populate the chart.",
+      "EMPTY_CHART_DESCRIPTION": "Send or receive messages in this period to fill the chart.",
       "EMPTY_EVENTS_TITLE": "No alerts yet",
-      "EMPTY_EVENTS_DESCRIPTION": "Alerts appear here when Elisa hands qualified leads off to the sales team.",
-      "TABS": {
-        "OVERVIEW": "Overview",
-        "REPORTS": "Live reports"
-      },
+      "EMPTY_EVENTS_DESCRIPTION": "Alerts show up here when Elisa hands qualified leads over to the sales team.",
       "KPI": {
-        "LEADS": "Leads",
         "SHOOTS_PERIOD": "Outreach in period",
-        "SHOOTS_MONTH": "Outreach this month",
-        "SHOOTS_TODAY": "Outreach today",
         "DEALS_WON": "Deals won",
         "DEALS_LOST": "Deals lost",
-        "REVENUE": "Potential revenue",
-        "MESSAGES_RECEIVED": "Messages in",
-        "MESSAGES_SENT": "Messages out",
-        "BOT_TAKEOVERS": "Elisa → human takeovers",
-        "HUMAN_RESCUES": "Human → Elisa rescues",
-        "AI_RESPONSES": "AI responses",
-        "APPOINTMENTS": "Appointments",
-        "CONVERSION_RATE": "Conversion rate",
-        "DEALS_WON_HINT": "Leads in the pipeline \"Won\" column",
-        "CONVERSION_RATE_HINT": "% of outreach that generated a sales alert",
-        "BOT_TAKEOVERS_HINT": "Number of alerts sent to the team",
-        "SHOOTS_MONTH_HINT": "Current month (not affected by the filter)",
-        "SHOOTS_TODAY_HINT": "Today (not affected by the filter)"
+        "REVENUE": "Revenue in negotiation",
+        "BOT_TAKEOVERS": "Elisa → team",
+        "CONVERSION_RATE": "Qualification",
+        "DEALS_WON_HINT": "\"Won\" column of the pipeline · current state",
+        "CONVERSION_RATE_HINT": "Share of contacts reached that became a sales alert",
+        "BOT_TAKEOVERS_HINT": "Qualified leads handed over to the sales team",
+        "SHOOTS_PERIOD_HINT": "Distinct contacts Elisa messaged",
+        "DEALS_LOST_HINT": "\"Lost\" column of the pipeline · current state",
+        "REVENUE_HINT": "Sum of the reference prices of the vehicles in the period's sales alerts"
       },
       "CHART": {
         "TITLE": "Daily activity",
         "MESSAGES_RECEIVED": "Messages received",
-        "MESSAGES_SENT": "Messages sent",
+        "MESSAGES_SENT": "Contacts reached",
         "AI_RESPONSES": "AI responses",
-        "BOT_TAKEOVERS": "Elisa takeovers"
+        "BOT_TAKEOVERS": "Elisa → team",
+        "AXIS_VOLUME": "Messages and contacts"
       },
       "RECENT_EVENTS": {
-        "TITLE": "Latest alerts",
-        "EMPTY": "No sales alerts yet."
+        "TITLE": "Latest alerts"
       },
       "DRY_RUN": {
         "TITLE": "Scheduled outreach today",
         "EMPTY_TITLE": "Nothing scheduled yet",
-        "EMPTY_DESC": "The preview runs at 08:00 and 13:30 (or on demand). Shows who Elisa will reach out to today."
+        "EMPTY_DESC": "The preview runs at 08:00 and 13:30 (or on demand). Shows who Elisa will reach out to today.",
+        "TYPE": {
+          "SHOOT": "Outreach",
+          "FOLLOW_UP": "Follow-up"
+        },
+        "PHONE_END": "••••{digits}"
       },
       "ALERT_DETAILS": {
         "TITLE": "Alert details",
@@ -121,27 +99,40 @@
         "INTEREST": "Interest",
         "REASON": "Reason",
         "NOTES": "Notes",
-        "OPEN_CONVERSATION": "Open conversation"
+        "OPEN_CONVERSATION": "Open conversation",
+        "MODEL_UNDEFINED": "Model not defined yet"
       },
-      "EVENT_TYPE": {
-        "LEAD_CREATED": "Lead created",
-        "LEAD_QUALIFIED": "Lead qualified",
-        "LEAD_DISQUALIFIED": "Lead disqualified",
-        "DEAL_CREATED": "Deal created",
-        "DEAL_WON": "Deal won",
-        "DEAL_LOST": "Deal lost",
-        "BOT_TAKEOVER": "Human takeover",
-        "HUMAN_RESCUE": "Bot rescue",
-        "APPOINTMENT_CONFIRMED": "Appointment confirmed",
-        "PRIVATE_NOTE_ADDED": "Private note added"
+      "PERIOD_LABEL": "Period",
+      "PERIOD_DAYS": "{days}d",
+      "ERROR": {
+        "TITLE": "Couldn't update the dashboard",
+        "DESCRIPTION": "Check your connection and try again.",
+        "STALE": "Showing data from {time}.",
+        "RETRY": "Try again"
+      },
+      "TODAY": {
+        "TITLE": "Today",
+        "HINT": "Doesn't follow the period filter",
+        "SHOOTS": "Outreach",
+        "SCHEDULED": "Scheduled",
+        "HANDOFFS": "Elisa → team"
+      },
+      "FUNNEL": {
+        "TITLE": "Period funnel",
+        "DESCRIPTION": "From the contacts reached to the deals won",
+        "SHOOTS": "Contacts reached",
+        "REPLIED": "Replied",
+        "ALERTS": "Sales alerts",
+        "WON": "Won",
+        "STEP_RATE": "{rate} of previous step",
+        "EMPTY_TITLE": "No outreach in this period",
+        "EMPTY_DESCRIPTION": "The funnel fills up when Elisa reaches contacts in the selected period."
       }
     },
     "METRICS": {
       "TITLE": "Synka Squadron",
       "SUBTITLE": "Performance metrics of the AI squadron",
       "REFRESH": "Refresh",
-      "LAST_UPDATED": "Updated at {time}",
-      "EMPTY": "—",
       "EMPTY_STATE": {
         "TITLE": "No agents registered yet",
         "DESCRIPTION": "Register agent bots with a squadron role (Alice, Iza, Otto, Luís, Fernanda, Ângela, Vitor) to see metrics here."
@@ -232,29 +223,28 @@
             "VALOR_RECUPERADO_CENTS": "Amount recovered"
           }
         }
-      }
+      },
+      "RANGE_LABEL": "Period"
     },
     "PIPELINE": {
       "TITLE": "CRM Pipeline",
       "SUBTITLE": "Drag leads across stages to update their pipeline position.",
       "LOADING": "Loading pipeline…",
-      "UNASSIGNED": "Unassigned",
+      "UNASSIGNED": "No stage",
       "ADD_STAGE": "Add stage",
-      "ADD_STAGE_PLUS": "+ Add stage",
       "NEW_STAGE_HEADER": "New pipeline stage",
       "STAGE_NAME": "Name",
       "STAGE_COLOR": "Color",
       "STAGE_TYPE": "Type",
-      "STAGE_TYPE_HINT": "'Won' and 'Lost' stages auto-close the lead's deal when a card is dropped on them.",
-      "CONFIRM_DELETE": "Delete stage '{name}'? Leads on it will become unassigned.",
-      "STAGE_SUM": "Σ {value}",
-      "CONV_ID": "conv #{id}",
+      "STAGE_TYPE_HINT": "'Won' and 'Lost' stages close the lead's deal when a card is dropped on them (after confirmation).",
+      "CONFIRM_DELETE": "Delete stage '{name}'? Leads on it will have no stage.",
+      "STAGE_SUM": "Total {value}",
       "CANCEL": "Cancel",
       "CREATE": "Create",
       "TEMPLATES": "Templates",
       "TEMPLATE_HEADER": "Pipeline templates",
       "TEMPLATE_DESCRIPTION": "Choose a pre-configured pipeline template for your segment. Warning: this will replace all current stages and unassign existing leads.",
-      "TEMPLATE_CONFIRM": "Apply this template? All current stages will be replaced and leads will be unassigned.",
+      "TEMPLATE_CONFIRM": "All current stages will be replaced and leads will have no stage.",
       "TEMPLATE_STAGES": "{count} stages",
       "TEMPLATE_FETCH_ERROR": "Could not load templates from the server. Please try again.",
       "TEMPLATE_EMPTY": "No templates available right now.",
@@ -264,7 +254,262 @@
         "WON": "Won",
         "LOST": "Lost",
         "CUSTOM": "Custom"
+      },
+      "TEMPLATE_CONFIRM_TITLE": "Apply the {name} template?",
+      "APPLY": "Apply",
+      "REFRESH": "Refresh pipeline",
+      "CONFIGURE": "Configure",
+      "SEARCH_PLACEHOLDER": "Search by name, phone or model",
+      "FILTERS": {
+        "HANDLER": "Handled by",
+        "SOURCE": "Source",
+        "MODEL": "Model"
+      },
+      "CLEAR_FILTERS": "Clear filters",
+      "FILTERED_COUNT": "Leads shown: {count}",
+      "LOAD_ERROR": "Could not load the pipeline.",
+      "RETRY": "Try again",
+      "EMPTY_STAGES_TITLE": "No stages configured",
+      "EMPTY_STAGES_DESCRIPTION": "Apply a pipeline template to start organizing your leads.",
+      "EMPTY_LEADS_TITLE": "No leads in the pipeline yet",
+      "EMPTY_LEADS_DESCRIPTION": "Leads show up here as soon as the AI agent starts a conversation.",
+      "EMPTY_COLUMN": "No leads",
+      "EXPAND_COLUMN": "Expand column {name}",
+      "COLLAPSE_COLUMN": "Collapse column {name}",
+      "RENAME_STAGE": "Click to rename",
+      "DELETE_STAGE": "Delete stage {name}",
+      "DELETE_STAGE_TITLE": "Delete stage?",
+      "DELETE": "Delete",
+      "MOVE_LEAD": "Move {name} to…",
+      "MOVE_TO": "Move to…",
+      "MOVED_TO": "Moved to {stage}",
+      "MOVE_UNDONE": "Move undone",
+      "MOVE_ERROR": "Could not move the lead. Please try again.",
+      "UNDO": "Undo",
+      "CLOSE": "Close",
+      "CONFIRM": "Confirm",
+      "CONFIRM_WON_TITLE": "Record as a sale?",
+      "CONFIRM_LOST_TITLE": "Close as lost?",
+      "CONFIRM_CLOSE_DESCRIPTION": "{name} moves to {stage} and the deal will be closed.",
+      "LOSS_REASON": "Loss reason",
+      "LAST_UPDATE": "Last update: {time}",
+      "ELAPSED": {
+        "MINUTES": "{count} min",
+        "HOURS": "{count} h",
+        "DAYS": "{count} d"
+      },
+      "SOURCES": {
+        "DISPARO": "Broadcast",
+        "INSTAGRAM": "Instagram",
+        "WHATSAPP": "WhatsApp",
+        "MANUAL": "Manual"
+      },
+      "HORIZONS": {
+        "IMMEDIATE": "Immediate",
+        "M1_3": "1 to 3 months",
+        "M3_6": "3 to 6 months",
+        "M6_12": "6 to 12 months",
+        "M12_PLUS": "Over 12 months",
+        "NO_DEADLINE": "No set timeframe"
+      },
+      "YES": "Yes",
+      "NO": "No",
+      "DRAWER": {
+        "HANDLER": "Handled by",
+        "HANDOFF": "Handoff summary",
+        "LAST_MESSAGE": "Last message",
+        "OPEN_CONVERSATION": "Open conversation",
+        "FIELDS": {
+          "MODEL": "Model of interest",
+          "VALUE": "Value",
+          "HORIZON": "Purchase timeframe",
+          "TRADE_IN": "Trade-in",
+          "PAYMENT": "Payment method",
+          "URGENCY": "Urgency",
+          "SOURCE": "Source",
+          "REASON": "Reason",
+          "NEXT_ACTION": "Next contact",
+          "UPDATED": "Last update",
+          "CREATED": "Created at"
+        }
+      },
+      "COLORS": {
+        "CYAN": "Cyan",
+        "GREEN": "Green",
+        "SLATE": "Gray",
+        "AMBER": "Amber",
+        "ROSE": "Rose",
+        "INDIGO": "Indigo",
+        "VIOLET": "Violet",
+        "ORANGE": "Orange"
       }
+    },
+    "COMMON": {
+      "UPDATED_AT": "Updated at {time}",
+      "REFRESHING": "Refreshing…",
+      "VS_PREVIOUS_PERIOD": "vs previous period"
+    },
+    "STATUS": {
+      "LEAD_NOVO": "New lead",
+      "COM_A_IA": "With AI",
+      "AGUARDANDO_VENDEDOR": "Waiting for sales rep",
+      "FUTURO": "Future",
+      "VISITA_MARCADA": "Visit scheduled",
+      "AGUARDANDO_ESTOQUE": "Waiting for stock",
+      "NEGOCIACAO": "Negotiation",
+      "VENDIDO": "Sold",
+      "SEM_VENDA": "No sale",
+      "QUER": "Interested",
+      "QUER_DEPOIS": "Interested later",
+      "NAO_QUER": "Not interested",
+      "SEM_RESPOSTA": "No reply",
+      "QUALIFICADO": "Qualified",
+      "COM_O_VENDEDOR": "With sales rep",
+      "RECUPERAVEL": "Recoverable",
+      "POS_VENDA": "After-sales",
+      "DESCARTADO": "Discarded",
+      "NAO_GENUINO": "Not genuine",
+      "AUTONOMO": "Autonomous",
+      "SOMBRA": "Shadow mode",
+      "ATIVO": "Active",
+      "CONECTADO": "Connected",
+      "PAUSADO": "Paused",
+      "PENDENTE": "Pending",
+      "DESCONECTADO": "Disconnected",
+      "INATIVO": "Inactive"
+    },
+    "CHAT_LIST": {
+      "TABS": {
+        "NEEDS_HUMAN": "Needs you"
+      },
+      "EMPTY": {
+        "TITLE": "No conversations here",
+        "NEEDS_HUMAN_TITLE": "Nobody is waiting for a reply right now",
+        "NEEDS_HUMAN_DESCRIPTION": "When the AI hands a lead over to the team, it shows up here."
+      },
+      "LAST_SENDER": {
+        "AI": "Last message: {name} (AI)",
+        "HUMAN": "Last message: {name}"
+      },
+      "TIME_AGO": {
+        "NOW": "now",
+        "MINUTES": "{count}m",
+        "HOURS": "{count}h",
+        "DAYS": "{count}d",
+        "MONTHS": "{count}mo",
+        "YEARS": "{count}y"
+      }
+    },
+    "CONVERSATION": {
+      "TYPING_INDICATOR_ALT": "Typing",
+      "CONTROL": {
+        "AUTONOMOUS": "{bot} · Autonomous",
+        "YOU_TOOK_OVER": "You took over · {bot} returns in {minutes} min",
+        "HUMAN_TOOK_OVER": "{name} took over · {bot} returns in {minutes} min",
+        "TAKE_OVER": "Take over conversation",
+        "SEND_PAUSES_HINT": "When you send, {bot} pauses for {minutes} min"
+      },
+      "LEAD_CARD": {
+        "TITLE": "Lead",
+        "EMPTY": "There is no lead for this conversation yet",
+        "VIEW_PIPELINE": "View in pipeline",
+        "NO_STAGE": "No stage",
+        "FIELDS": {
+          "STAGE": "Stage",
+          "INTEREST": "Interest",
+          "HORIZON": "Purchase horizon",
+          "SOURCE": "Source",
+          "PHONE": "Phone",
+          "HANDLING": "Handled by",
+          "HANDOFF": "Handoff summary"
+        },
+        "HORIZONS": {
+          "IMMEDIATE": "Immediate",
+          "ONE_TO_THREE_MONTHS": "1 to 3 months",
+          "THREE_TO_SIX_MONTHS": "3 to 6 months",
+          "SIX_TO_TWELVE_MONTHS": "6 to 12 months",
+          "OVER_TWELVE_MONTHS": "Over 12 months",
+          "NO_DEADLINE": "No deadline"
+        },
+        "SOURCES": {
+          "DISPARO": "Outbound campaign",
+          "AUTOMATION": "Automation",
+          "ALERT_APPROVED": "Approved alert",
+          "IMPORT": "Import",
+          "MANUAL": "Manual"
+        },
+        "MOVE": {
+          "CONFIRM_TITLE": "Move to “{stage}”?",
+          "CONFIRM_WON": "The lead will be marked as a closed sale.",
+          "CONFIRM_LOST": "The lead will be marked as lost.",
+          "LOSS_REASON": "Loss reason",
+          "LOSS_REASON_PLACEHOLDER": "Select the reason",
+          "CONFIRM": "Move",
+          "SUCCESS": "Lead moved to {stage}",
+          "ERROR": "Could not move the lead"
+        }
+      }
+    },
+    "DESIGN_SYSTEM": {
+      "TITLE": "Design System",
+      "DESCRIPTION": "Fykos design system tokens and primitives used across Synapse OS.",
+      "SECTIONS": {
+        "COLORS": "Colors",
+        "TYPOGRAPHY": "Typography",
+        "PAGE_HEADER": "Page header",
+        "KPI_CARD": "KPI cards",
+        "STATUS_BADGE": "Status badges",
+        "SKELETON": "Skeleton",
+        "BUTTONS": "Buttons"
+      },
+      "GROUPS": {
+        "SURFACES": "Surfaces and borders",
+        "TEXT": "Text",
+        "BRAND": "Brand and focus",
+        "STATES": "States",
+        "CHART": "Chart palette",
+        "AGENTS": "Agent identity"
+      },
+      "CHART_ROLES": {
+        "CHART_1": "Main metric",
+        "CHART_2": "Gain and revenue",
+        "CHART_3": "Neutral",
+        "CHART_4": "Alert and pending",
+        "CHART_5": "Loss",
+        "CHART_6": "Projection",
+        "CHART_7": "Category",
+        "CHART_8": "Secondary"
+      },
+      "FONTS": {
+        "DISPLAY": "Display · Space Grotesk — titles and KPI numbers",
+        "SANS": "Text · Inter — body and interface",
+        "MONO": "Mono · JetBrains Mono — codes and IDs"
+      },
+      "TEXT_SAMPLE": "Aa",
+      "TYPE_SAMPLE": "Elisa qualified 42 leads today",
+      "EXAMPLES": {
+        "PAGE_TITLE": "Executive Dashboard",
+        "PAGE_DESCRIPTION": "KPIs for the last 30 days",
+        "ACTION": "Export"
+      },
+      "BUTTONS": {
+        "PRIMARY": "Primary",
+        "OUTLINE": "Outline",
+        "GHOST": "Ghost",
+        "DANGER": "Delete",
+        "LOADING": "Saving…",
+        "DISABLED": "Disabled",
+        "SMALL": "Small",
+        "MEDIUM": "Medium",
+        "LARGE": "Large"
+      }
+    },
+    "MESSAGES": {
+      "SENDER_AI": "{name} · AI",
+      "TODAY": "Today",
+      "YESTERDAY": "Yesterday",
+      "ACTIONS": "Message actions",
+      "RETRY": "Retry sending"
     },
     "SUPPORT": {
       "TITLE": "Support",

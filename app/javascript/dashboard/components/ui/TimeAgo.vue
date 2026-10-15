@@ -1,122 +1,114 @@
-<script>
-const MINUTE_IN_MILLI_SECONDS = 60000;
-const HOUR_IN_MILLI_SECONDS = MINUTE_IN_MILLI_SECONDS * 60;
-const DAY_IN_MILLI_SECONDS = HOUR_IN_MILLI_SECONDS * 24;
+<script setup>
+// CUSTOMIZAÇÃO_SYNAPSEOS: tempos no idioma do usuário (antes "1mo • 10m" e o
+// tooltip do date-fns sempre em inglês). Formato curto vem do i18n; o tooltip
+// usa Intl com o locale da interface.
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import {
-  dynamicTime,
-  dateFormat,
-  shortTimestamp,
-} from 'shared/helpers/timeHelper';
+const props = defineProps({
+  isAutoRefreshEnabled: { type: Boolean, default: true },
+  lastActivityTimestamp: { type: [String, Date, Number], default: '' },
+  createdAtTimestamp: { type: [String, Date, Number], default: '' },
+  conversationId: { type: [String, Number], default: '' },
+});
 
-export default {
-  name: 'TimeAgo',
-  props: {
-    isAutoRefreshEnabled: {
-      type: Boolean,
-      default: true,
-    },
-    lastActivityTimestamp: {
-      type: [String, Date, Number],
-      default: '',
-    },
-    createdAtTimestamp: {
-      type: [String, Date, Number],
-      default: '',
-    },
-    conversationId: {
-      type: [String, Number],
-      default: '',
-    },
-  },
-  data() {
-    return {
-      lastActivityAtTimeAgo: dynamicTime(this.lastActivityTimestamp),
-      createdAtTimeAgo: dynamicTime(this.createdAtTimestamp),
-      timer: null,
-    };
-  },
-  computed: {
-    lastActivityTime() {
-      return shortTimestamp(this.lastActivityAtTimeAgo);
-    },
-    createdAtTime() {
-      return shortTimestamp(this.createdAtTimeAgo);
-    },
-    createdAt() {
-      const createdTimeDiff = Date.now() - this.createdAtTimestamp * 1000;
-      const isBeforeAMonth = createdTimeDiff > DAY_IN_MILLI_SECONDS * 30;
-      return !isBeforeAMonth
-        ? `${this.$t('CHAT_LIST.CHAT_TIME_STAMP.CREATED.LATEST')} ${
-            this.createdAtTimeAgo
-          }`
-        : `${this.$t('CHAT_LIST.CHAT_TIME_STAMP.CREATED.OLDEST')} ${dateFormat(
-            this.createdAtTimestamp
-          )}`;
-    },
-    lastActivity() {
-      const lastActivityTimeDiff =
-        Date.now() - this.lastActivityTimestamp * 1000;
-      const isNotActive = lastActivityTimeDiff > DAY_IN_MILLI_SECONDS * 30;
-      return !isNotActive
-        ? `${this.$t('CHAT_LIST.CHAT_TIME_STAMP.LAST_ACTIVITY.ACTIVE')} ${
-            this.lastActivityAtTimeAgo
-          }`
-        : `${this.$t(
-            'CHAT_LIST.CHAT_TIME_STAMP.LAST_ACTIVITY.NOT_ACTIVE'
-          )} ${dateFormat(this.lastActivityTimestamp)}`;
-    },
-    tooltipText() {
-      return `${this.createdAt}
-              ${this.lastActivity}`;
-    },
-  },
-  watch: {
-    lastActivityTimestamp() {
-      this.lastActivityAtTimeAgo = dynamicTime(this.lastActivityTimestamp);
-    },
-    createdAtTimestamp() {
-      this.createdAtTimeAgo = dynamicTime(this.createdAtTimestamp);
-    },
-    conversationId() {
-      // Reset display values and timer when the row is recycled to a different conversation.
-      this.lastActivityAtTimeAgo = dynamicTime(this.lastActivityTimestamp);
-      this.createdAtTimeAgo = dynamicTime(this.createdAtTimestamp);
-      if (this.isAutoRefreshEnabled) {
-        clearTimeout(this.timer);
-        this.createTimer();
-      }
-    },
-  },
-  mounted() {
-    if (this.isAutoRefreshEnabled) {
-      this.createTimer();
-    }
-  },
-  unmounted() {
-    clearTimeout(this.timer);
-  },
-  methods: {
-    createTimer() {
-      this.timer = setTimeout(() => {
-        this.lastActivityAtTimeAgo = dynamicTime(this.lastActivityTimestamp);
-        this.createdAtTimeAgo = dynamicTime(this.createdAtTimestamp);
-        this.createTimer();
-      }, this.refreshTime());
-    },
-    refreshTime() {
-      const timeDiff = Date.now() - this.lastActivityTimestamp * 1000;
-      if (timeDiff > DAY_IN_MILLI_SECONDS) {
-        return DAY_IN_MILLI_SECONDS;
-      }
-      if (timeDiff > HOUR_IN_MILLI_SECONDS) {
-        return HOUR_IN_MILLI_SECONDS;
-      }
+const MINUTE = 60;
+const HOUR = MINUTE * 60;
+const DAY = HOUR * 24;
+const MONTH = DAY * 30;
+const YEAR = DAY * 365;
+const UNITS = [
+  { size: YEAR, unit: 'year', key: 'SYNAPSEOS.CHAT_LIST.TIME_AGO.YEARS' },
+  { size: MONTH, unit: 'month', key: 'SYNAPSEOS.CHAT_LIST.TIME_AGO.MONTHS' },
+  { size: DAY, unit: 'day', key: 'SYNAPSEOS.CHAT_LIST.TIME_AGO.DAYS' },
+  { size: HOUR, unit: 'hour', key: 'SYNAPSEOS.CHAT_LIST.TIME_AGO.HOURS' },
+  { size: MINUTE, unit: 'minute', key: 'SYNAPSEOS.CHAT_LIST.TIME_AGO.MINUTES' },
+];
 
-      return MINUTE_IN_MILLI_SECONDS;
-    },
-  },
+const { t, locale } = useI18n();
+const localeTag = computed(() => locale.value.replace(/_/g, '-'));
+
+const now = ref(Date.now());
+let timer = null;
+
+const secondsSince = timestamp => Math.max(0, now.value / 1000 - timestamp);
+
+const elapsed = timestamp => {
+  const seconds = secondsSince(timestamp);
+  const match = UNITS.find(({ size }) => seconds >= size);
+  return match && { ...match, count: Math.floor(seconds / match.size) };
 };
+
+const shortTime = timestamp => {
+  const time = elapsed(timestamp);
+  if (!time) return t('SYNAPSEOS.CHAT_LIST.TIME_AGO.NOW');
+  return t(time.key, { count: time.count }, time.count);
+};
+
+// Até 30 dias: "Criado há 3 dias"; depois: "Criado em: 15 de out. de 2026".
+const tooltipLine = (timestamp, recentLabel, oldLabel) => {
+  if (secondsSince(timestamp) > MONTH) {
+    const date = new Intl.DateTimeFormat(localeTag.value, {
+      dateStyle: 'medium',
+    }).format(new Date(timestamp * 1000));
+    return `${oldLabel} ${date}`;
+  }
+  const time = elapsed(timestamp) || { count: 0, unit: 'second' };
+  const relative = new Intl.RelativeTimeFormat(localeTag.value, {
+    numeric: 'auto',
+  }).format(-time.count, time.unit);
+  return `${recentLabel} ${relative}`;
+};
+
+const createdAtTime = computed(() => shortTime(props.createdAtTimestamp));
+const lastActivityTime = computed(() => shortTime(props.lastActivityTimestamp));
+
+const tooltipText = computed(() =>
+  [
+    tooltipLine(
+      props.createdAtTimestamp,
+      t('CHAT_LIST.CHAT_TIME_STAMP.CREATED.LATEST'),
+      t('CHAT_LIST.CHAT_TIME_STAMP.CREATED.OLDEST')
+    ),
+    tooltipLine(
+      props.lastActivityTimestamp,
+      t('CHAT_LIST.CHAT_TIME_STAMP.LAST_ACTIVITY.ACTIVE'),
+      t('CHAT_LIST.CHAT_TIME_STAMP.LAST_ACTIVITY.NOT_ACTIVE')
+    ),
+  ].join('\n')
+);
+
+const refreshTime = () => {
+  const seconds = secondsSince(props.lastActivityTimestamp);
+  if (seconds > DAY) return DAY * 1000;
+  if (seconds > HOUR) return HOUR * 1000;
+  return MINUTE * 1000;
+};
+
+const createTimer = () => {
+  timer = setTimeout(() => {
+    now.value = Date.now();
+    createTimer();
+  }, refreshTime());
+};
+
+// A linha da lista virtual é reaproveitada para outra conversa: recalcula e reinicia o timer.
+watch(
+  () => props.conversationId,
+  () => {
+    now.value = Date.now();
+    if (props.isAutoRefreshEnabled) {
+      clearTimeout(timer);
+      createTimer();
+    }
+  }
+);
+
+onMounted(() => {
+  if (props.isAutoRefreshEnabled) createTimer();
+});
+
+onUnmounted(() => clearTimeout(timer));
 </script>
 
 <template>

@@ -33,9 +33,9 @@ const shouldRenderComponent = computed(() => {
       :title="label"
       class="flex h-9 items-center gap-2 py-1 rounded-lg text-sm font-medium transition-colors group min-w-0"
       :class="{
-        'bg-s-brand-800 text-s-on-dark ltr:pl-[9px] rtl:pr-[9px] ltr:pr-3 rtl:pl-3 ltr:border-l-[3px] rtl:border-r-[3px] border-s-accent-500':
+        'bg-s-brand-soft text-s-brand-text font-medium ltr:pl-[9px] rtl:pr-[9px] ltr:pr-3 rtl:pl-3 ltr:border-l-[3px] rtl:border-r-[3px] border-s-accent-500':
           active,
-        'text-s-on-dark-muted hover:bg-white/[0.06] hover:text-s-on-dark px-3':
+        'text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark px-3':
           !active,
       }"
     >

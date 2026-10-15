@@ -56,18 +56,19 @@ useKeyboardEvents(keyboardEvents);
 </script>
 
 <template>
+  <!-- CUSTOMIZAÇÃO_SYNAPSEOS: renderizado no cabeçalho da conversa (antes flutuava sobre os balões). -->
   <ButtonGroup
-    class="flex flex-col justify-center items-center absolute top-36 xl:top-24 ltr:right-2 rtl:left-2 bg-s-subtle/90 backdrop-blur-lg border border-s-border/50 rounded-full gap-1.5 p-1.5 shadow-sm transition-shadow duration-200 hover:shadow !z-20"
+    class="flex items-center bg-s-subtle border border-s-border rounded-lg gap-0.5 p-0.5"
   >
     <Button
       v-tooltip.top="$t('CONVERSATION.SIDEBAR.CONTACT')"
       ghost
       slate
       sm
-      class="!rounded-full transition-all duration-[250ms] ease-out active:!scale-95 active:!brightness-105 active:duration-75"
-      :class="{
-        'bg-s-subtle active:shadow-sm': isContactSidebarOpen,
-      }"
+      class="!rounded-md"
+      :class="{ '!bg-s-brand-soft !text-s-brand-text': isContactSidebarOpen }"
+      :aria-label="$t('CONVERSATION.SIDEBAR.CONTACT')"
+      :aria-pressed="!!isContactSidebarOpen"
       icon="i-ph-user-bold"
       @click="handleConversationSidebarToggle"
     />
@@ -77,11 +78,10 @@ useKeyboardEvents(keyboardEvents);
       ghost
       slate
       sm
-      class="!rounded-full transition-all duration-[250ms] ease-out active:!scale-95 active:duration-75"
-      :class="{
-        'bg-s-subtle !text-s-brand active:!brightness-105 active:shadow-sm':
-          isCopilotPanelOpen,
-      }"
+      class="!rounded-md"
+      :class="{ '!bg-s-brand-soft !text-s-brand-text': isCopilotPanelOpen }"
+      :aria-label="$t('CONVERSATION.SIDEBAR.COPILOT')"
+      :aria-pressed="!!isCopilotPanelOpen"
       icon="i-woot-captain"
       @click="handleCopilotSidebarToggle"
     />

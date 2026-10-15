@@ -62,6 +62,8 @@ Rails.application.routes.draw do
             resources :live_agents, only: [:index] do
               member { get :conversations }
             end
+            # CUSTOMIZAÇÃO_SYNAPSEOS — estágio dos leads das conversas da lista, em lote (antes de leads/:id)
+            get 'leads/stages', to: 'lead_stages#index'
             resources :leads, only: [:index, :show, :create, :update] do
               collection do
                 get 'by_conversation/:conversation_id', action: :by_conversation

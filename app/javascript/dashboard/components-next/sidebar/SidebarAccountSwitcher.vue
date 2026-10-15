@@ -56,8 +56,8 @@ const emitNewAccount = () => {
       <!-- Collapsed view: Logo trigger -->
       <button
         v-if="isCollapsed"
-        class="grid flex-shrink-0 place-content-center p-2 rounded-lg cursor-pointer hover:bg-white/[0.06] transition-colors"
-        :class="{ 'bg-white/[0.06]': isOpen }"
+        class="grid flex-shrink-0 place-content-center p-2 rounded-lg cursor-pointer hover:bg-s-nav-hover transition-colors"
+        :class="{ 'bg-s-subtle': isOpen }"
         :title="currentAccount.name"
         @click="toggle"
       >
@@ -72,9 +72,9 @@ const emitNewAccount = () => {
         aria-controls="account-options"
         class="flex items-center gap-2 justify-between w-full rounded-lg px-2 py-1 transition-colors"
         :class="[
-          isOpen && 'bg-white/[0.06]',
+          isOpen && 'bg-s-subtle',
           showAccountSwitcher
-            ? 'hover:bg-white/[0.06] cursor-pointer'
+            ? 'hover:bg-s-nav-hover cursor-pointer'
             : 'cursor-default',
         ]"
         @click="() => showAccountSwitcher && toggle()"

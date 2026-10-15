@@ -237,9 +237,9 @@ watch(
           type="button"
           class="flex items-center justify-center size-11 rounded-lg transition-colors"
           :class="{
-            'bg-s-brand-800 text-s-on-dark ring-1 ring-s-accent-500':
+            'bg-s-brand-soft text-s-brand-text ring-1 ring-s-accent-500/50':
               isActive || hasActiveChild,
-            'text-s-on-dark-muted hover:bg-white/[0.06] hover:text-s-on-dark':
+            'text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark':
               !isActive && !hasActiveChild,
           }"
           :title="label"

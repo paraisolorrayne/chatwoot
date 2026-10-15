@@ -1,88 +1,105 @@
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+// CUSTOMIZAÇÃO_SYNAPSEOS — dashboard executivo (gerentes não técnicos).
+// Primeira carga mostra skeletons; o polling de 30 s atualiza em segundo plano
+// sem esconder os dados e pausa com a aba oculta.
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
+import { useDocumentVisibility, useIntervalFn } from '@vueuse/core';
 /* global axios */
-import Chart from 'primevue/chart';
-import SynapseStatusPill from 'next/synapseos/SynapseStatusPill.vue';
+import SynapsePageHeader from 'next/synapseos/SynapsePageHeader.vue';
+import SynapseKpiCard from 'next/synapseos/SynapseKpiCard.vue';
+import SynapseSkeleton from 'next/synapseos/SynapseSkeleton.vue';
 import SynapseBadge from 'next/synapseos/SynapseBadge.vue';
+import SynapseButton from 'next/synapseos/SynapseButton.vue';
 import SynapseEmptyState from 'next/synapseos/SynapseEmptyState.vue';
-import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
+import DashboardFunnel from '../components/dashboard/DashboardFunnel.vue';
+import DashboardActivityChart from '../components/dashboard/DashboardActivityChart.vue';
+import DashboardRecentAlerts from '../components/dashboard/DashboardRecentAlerts.vue';
+import { useDashboardFormat } from '../components/dashboard/useDashboardFormat';
+
+const POLL_MS = 30000;
+const PERIOD_OPTIONS = [7, 30, 90];
 
 const { t } = useI18n();
 const route = useRoute();
-
-// Popup de detalhes do alerta (clique em ÚLTIMOS ALERTAS).
-const alertDialog = ref(null);
-const selectedAlert = ref(null);
-const openAlert = event => {
-  selectedAlert.value = event;
-  alertDialog.value?.open();
-};
-const selectedAlertConversationUrl = computed(() => {
-  const cid = selectedAlert.value?.conversation_id;
-  if (!cid) return null;
-  return `/app/accounts/${route.params.accountId}/conversations/${cid}`;
-});
-
-const periodOptions = [
-  { label: '7d', value: 7 },
-  { label: '30d', value: 30 },
-  { label: '90d', value: 90 },
-];
-
-// CUSTOMIZAÇÃO_SYNAPSEOS: aba "Relatórios ao vivo" ocultada (cliente não usa
-// no dash executivo). Só Visão geral.
-const tabs = computed(() => [
-  { key: 'overview', label: t('SYNAPSEOS.DASHBOARD.TABS.OVERVIEW') },
-]);
-const activeTab = ref('overview');
+const {
+  formatNumber,
+  formatPercent,
+  formatCurrency,
+  formatPersonName,
+  formatTime,
+} = useDashboardFormat();
 
 const period = ref(30);
 const summary = ref(null);
-const loading = ref(true);
-const refreshTimer = ref(null);
+// Série do gráfico separada: só muda quando os dados mudam, senão o Chart
+// redesenharia (com animação) a cada polling.
+const daily = ref([]);
+const refreshing = ref(false);
+const error = ref(null);
+const updatedAt = ref(null);
+
+const loading = computed(() => !summary.value);
 
 const fetchSummary = async () => {
-  const accountId = route.params.accountId;
-  loading.value = true;
+  const days = period.value;
+  refreshing.value = true;
   try {
     const { data } = await axios.get(
-      `/api/v1/accounts/${accountId}/synapseos/dashboard/summary`,
-      { params: { days: period.value } }
+      `/api/v1/accounts/${route.params.accountId}/synapseos/dashboard/summary`,
+      { params: { days } }
     );
+    // Resposta de um período que o usuário já trocou: descarta.
+    if (days !== period.value) return;
     summary.value = data;
+    if (JSON.stringify(data.daily) !== JSON.stringify(daily.value)) {
+      daily.value = data.daily;
+    }
+    updatedAt.value = Date.now();
+    error.value = null;
+  } catch (err) {
+    error.value = err;
   } finally {
-    loading.value = false;
+    refreshing.value = false;
   }
 };
 
-const formatCurrency = value => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value || 0);
-};
+const { pause, resume } = useIntervalFn(fetchSummary, POLL_MS);
+const visibility = useDocumentVisibility();
+watch(visibility, state => {
+  if (state === 'hidden') {
+    pause();
+    return;
+  }
+  fetchSummary();
+  resume();
+});
 
-const formatNumber = value => {
-  return new Intl.NumberFormat('pt-BR').format(value || 0);
-};
+watch(period, () => {
+  summary.value = null;
+  daily.value = [];
+  fetchSummary();
+});
 
-const formatPercent = value => `${(value || 0).toFixed(1)}%`;
+fetchSummary();
 
-const primaryKpis = computed(() => {
-  const k = summary.value?.kpis || {};
+// Delta % vs. período anterior; sem base (0) não há comparação possível.
+const pctDelta = (current, previous) =>
+  previous ? Math.round(((current - previous) / previous) * 1000) / 10 : null;
+// Delta em pontos percentuais (taxas).
+const ppDelta = (current, previous) =>
+  previous === undefined ? null : Math.round((current - previous) * 10) / 10;
+
+const kpis = computed(() => summary.value?.kpis || {});
+const previousKpis = computed(() => summary.value?.previous_period.kpis || {});
+
+const heroCards = computed(() => {
+  const k = kpis.value;
+  const p = previousKpis.value;
   return [
-    // DISPAROS NO PERÍODO — métrica primária (substitui leads como 1º card).
-    // Respeita o filtro de período (7d/30d/90d).
-    {
-      key: 'shoots_period',
-      label: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_PERIOD'),
-      value: formatNumber(k.shoots_period),
-      icon: 'i-lucide-zap',
-      tone: 'brand',
-    },
-    // Negócios ganhos = leads na coluna "Ganho" da pipeline (stage_type 'won').
+    // Negócios ganhos = coluna "Ganho" da pipeline (estado atual, sem delta:
+    // não há histórico de entrada no stage para comparar períodos).
     {
       key: 'deals_won',
       label: t('SYNAPSEOS.DASHBOARD.KPI.DEALS_WON'),
@@ -91,575 +108,323 @@ const primaryKpis = computed(() => {
       icon: 'i-lucide-trophy',
       tone: 'success',
     },
-    // Receita potencial = somatório do valor dos veículos mencionados
-    // nos alertas (preco_brl_a_partir do metadata).
     {
       key: 'revenue',
       label: t('SYNAPSEOS.DASHBOARD.KPI.REVENUE'),
-      value: formatCurrency(k.revenue),
-      icon: 'i-lucide-dollar-sign',
+      value: formatCurrency(k.revenue, { compact: k.revenue >= 1000000 }),
+      title: formatCurrency(k.revenue),
+      hint: t('SYNAPSEOS.DASHBOARD.KPI.REVENUE_HINT'),
+      icon: 'i-lucide-banknote',
       tone: 'success',
+      delta: pctDelta(k.revenue, p.revenue),
     },
     {
       key: 'conversion_rate',
       label: t('SYNAPSEOS.DASHBOARD.KPI.CONVERSION_RATE'),
       value: formatPercent(k.conversion_rate),
       hint: t('SYNAPSEOS.DASHBOARD.KPI.CONVERSION_RATE_HINT'),
-      icon: 'i-lucide-trending-up',
+      icon: 'i-lucide-filter',
       tone: 'brand',
+      delta: ppDelta(k.conversion_rate, p.conversion_rate),
+      deltaUnit: 'pp',
+    },
+    {
+      key: 'shoots_period',
+      label: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_PERIOD'),
+      value: formatNumber(k.shoots_period),
+      hint: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_PERIOD_HINT'),
+      icon: 'i-lucide-send',
+      tone: 'neutral',
+      delta: pctDelta(k.shoots_period, p.shoots_period),
+      sparkline: daily.value.map(d => d.messages_sent),
     },
   ];
 });
 
-// Operacionais (dash executivo):
-// - DISPAROS HOJE / NO MÊS: contatos distintos abordados (dia/mês, BRT).
-// - ELISA → ATENDIMENTO HUMANO: qtd de alertas enviados ao time.
-// - NEGÓCIOS PERDIDOS: leads na coluna "perdido" da pipeline (stage_type lost).
-// 'Agendamentos' removido (vivia em 0). Removidos antes (não são métricas de
-// negócio): Leads, Mensagens recebidas/enviadas, Respostas da IA.
-const operationalCards = computed(() => {
-  const k = summary.value?.kpis || {};
+const secondaryCards = computed(() => {
+  const k = kpis.value;
   return [
-    // Disparos HOJE (dia corrente, BRT) — NÃO reage ao filtro de período.
     {
-      key: 'shoots_today',
-      label: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_TODAY'),
-      value: formatNumber(k.shoots_today),
-      hint: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_TODAY_HINT'),
-      valueClass: 'text-s-primary',
+      key: 'deals_lost',
+      label: t('SYNAPSEOS.DASHBOARD.KPI.DEALS_LOST'),
+      value: formatNumber(k.deals_lost),
+      hint: t('SYNAPSEOS.DASHBOARD.KPI.DEALS_LOST_HINT'),
+      icon: 'i-lucide-circle-x',
+      tone: 'neutral',
+      positiveIs: 'down',
     },
-    // Disparos no mês corrente — NÃO reage ao filtro de período da tela
-    // (diferente de SHOOTS_PERIOD, que respeita 7d/30d/90d).
-    {
-      key: 'shoots_month',
-      label: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_MONTH'),
-      value: formatNumber(k.shoots_month),
-      hint: t('SYNAPSEOS.DASHBOARD.KPI.SHOOTS_MONTH_HINT'),
-      valueClass: 'text-s-primary',
-    },
+    // Handoff é o objetivo da Elisa: tom de marca, nunca de alerta.
     {
       key: 'bot_takeovers',
       label: t('SYNAPSEOS.DASHBOARD.KPI.BOT_TAKEOVERS'),
       value: formatNumber(k.bot_takeovers),
       hint: t('SYNAPSEOS.DASHBOARD.KPI.BOT_TAKEOVERS_HINT'),
-      valueClass: 'text-s-warning-text',
+      icon: 'i-lucide-user-check',
+      tone: 'brand',
+      delta: pctDelta(k.bot_takeovers, previousKpis.value.bot_takeovers),
+      sparkline: daily.value.map(d => d.bot_takeovers),
     },
-    {
-      key: 'deals_lost',
-      label: t('SYNAPSEOS.DASHBOARD.KPI.DEALS_LOST'),
-      value: formatNumber(k.deals_lost),
-      valueClass: 'text-s-primary',
-    },
-    // 'Agendamentos' (appointments) removido: vivia em 0 (aguardando_visita
-    // vazia) e ocupava o lugar de uma métrica útil. 'Disparos hoje' (acima)
-    // assume o slot operacional diário.
   ];
 });
 
-const eventTypeMeta = {
-  lead_created: { icon: 'i-lucide-user-plus', tone: 'neutral' },
-  lead_qualified: { icon: 'i-lucide-star', tone: 'brand' },
-  lead_disqualified: { icon: 'i-lucide-x-circle', tone: 'neutral' },
-  deal_created: { icon: 'i-lucide-file-plus', tone: 'neutral' },
-  deal_won: { icon: 'i-lucide-check-circle', tone: 'success' },
-  deal_lost: { icon: 'i-lucide-x-circle', tone: 'error' },
-  bot_takeover: { icon: 'i-lucide-user-cog', tone: 'warning' },
-  human_rescue: { icon: 'i-lucide-bot', tone: 'error' },
-  appointment_confirmed: { icon: 'i-lucide-calendar-check', tone: 'warning' },
-  private_note_added: { icon: 'i-lucide-sticky-note', tone: 'neutral' },
-};
-
-// ATIVIDADE RECENTE — só últimos alertas de venda. Backend já filtra por
-// sales_alert_dispatched e enriquece com contact_name + modelo_interesse.
-// Render: nome do cliente em destaque + modelo de interesse como badge.
-const recentEvents = computed(() => {
-  return (summary.value?.recent_events || []).map(ev => ({
-    ...ev,
-    meta: eventTypeMeta[ev.event_type] || {
-      icon: 'i-lucide-bell',
-      tone: 'success',
-    },
-    relativeTime: formatRelativeTime(ev.created_at),
-  }));
-});
-
-// DISPAROS PROGRAMADOS HOJE (dry-run read-only do n8n via snapshot CrmEvent).
-// Lista combinada disparos + follow-ups, só nome + últimos 4 dígitos.
-const dryRun = computed(() => summary.value?.dry_run || null);
+// DISPAROS PROGRAMADOS HOJE (dry-run read-only do n8n via snapshot CrmEvent):
+// disparos + follow-ups, só nome + últimos 4 dígitos.
+const dryRun = computed(() => summary.value?.dry_run);
 const dryRunItems = computed(() => {
-  const d = summary.value?.dry_run;
-  if (!d) return [];
-  const disp = (d.disparos || []).map(x => ({ ...x, tipo: 'disparo' }));
-  const fu = (d.followups || []).map(x => ({ ...x, tipo: 'follow-up' }));
-  return [...disp, ...fu];
+  if (!dryRun.value) return [];
+  const tag = (items, type, label, tone) =>
+    items.map((item, index) => ({
+      ...item,
+      key: `${type}-${index}`,
+      name: formatPersonName(item.nome),
+      label,
+      tone,
+    }));
+  return [
+    ...tag(
+      dryRun.value.disparos,
+      'shoot',
+      t('SYNAPSEOS.DASHBOARD.DRY_RUN.TYPE.SHOOT'),
+      'brand'
+    ),
+    ...tag(
+      dryRun.value.followups,
+      'followup',
+      t('SYNAPSEOS.DASHBOARD.DRY_RUN.TYPE.FOLLOW_UP'),
+      'neutral'
+    ),
+  ];
 });
 
-const formatRelativeTime = iso => {
-  if (!iso) return '';
-  const then = new Date(iso).getTime();
-  const delta = Math.max(0, Math.floor((Date.now() - then) / 1000));
-  if (delta < 60) return `${delta}s`;
-  if (delta < 3600) return `${Math.floor(delta / 60)}m`;
-  if (delta < 86400) return `${Math.floor(delta / 3600)}h`;
-  return `${Math.floor(delta / 86400)}d`;
-};
-
-// Cores do chart alinhadas com a paleta Dexi (navy + cyan accent + neutros).
-// Series principais usam cyan técnico; secundárias ficam em tons navy e
-// âmbar pra manter diferenciação sem competir visualmente.
-const chartData = computed(() => {
-  const days = summary.value?.daily || [];
-  return {
-    labels: days.map(d => d.date.slice(5)),
-    datasets: [
-      {
-        label: t('SYNAPSEOS.DASHBOARD.CHART.MESSAGES_RECEIVED'),
-        data: days.map(d => d.messages_received),
-        borderColor: 'rgb(0, 184, 217)',
-        backgroundColor: ctx => {
-          const { ctx: c, chartArea } = ctx.chart;
-          if (!chartArea) return 'rgba(0, 184, 217, 0.15)';
-          const gradient = c.createLinearGradient(
-            0,
-            chartArea.top,
-            0,
-            chartArea.bottom
-          );
-          gradient.addColorStop(0, 'rgba(0, 184, 217, 0.20)');
-          gradient.addColorStop(1, 'rgba(0, 184, 217, 0)');
-          return gradient;
-        },
-        fill: true,
-        tension: 0.35,
-        borderWidth: 2,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-      },
-      {
-        label: t('SYNAPSEOS.DASHBOARD.CHART.MESSAGES_SENT'),
-        data: days.map(d => d.messages_sent),
-        borderColor: 'rgb(11, 31, 58)',
-        backgroundColor: 'transparent',
-        fill: false,
-        tension: 0.35,
-        borderWidth: 2,
-        pointRadius: 0,
-        pointHoverRadius: 4,
-      },
-      {
-        label: t('SYNAPSEOS.DASHBOARD.CHART.AI_RESPONSES'),
-        data: days.map(d => d.ai_responses),
-        borderColor: 'rgb(14, 116, 144)',
-        backgroundColor: 'transparent',
-        borderDash: [4, 4],
-        fill: false,
-        tension: 0.35,
-        borderWidth: 1.5,
-        pointRadius: 0,
-      },
-      {
-        label: t('SYNAPSEOS.DASHBOARD.CHART.BOT_TAKEOVERS'),
-        data: days.map(d => d.bot_takeovers),
-        borderColor: 'rgb(154, 103, 0)',
-        backgroundColor: 'transparent',
-        fill: false,
-        tension: 0.35,
-        borderWidth: 1.5,
-        pointRadius: 0,
-      },
-    ],
-  };
-});
-
-const chartOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  interaction: { mode: 'index', intersect: false },
-  plugins: {
-    legend: {
-      position: 'bottom',
-      labels: {
-        boxWidth: 8,
-        boxHeight: 8,
-        padding: 20,
-        font: { size: 11, family: 'Inter' },
-        color: '#425466',
-        usePointStyle: true,
-        pointStyle: 'rectRounded',
-      },
-    },
-    tooltip: {
-      backgroundColor: '#0B1F3A',
-      titleColor: '#FFFFFF',
-      titleFont: { size: 11, weight: 600 },
-      bodyColor: '#B8C4D4',
-      bodyFont: { size: 12, family: 'Inter' },
-      borderColor: '#1A4272',
-      borderWidth: 1,
-      padding: 12,
-      cornerRadius: 6,
-      usePointStyle: true,
-    },
+// Bloco "Hoje" (dia corrente em BRT) — não reage ao filtro de período.
+const todayStats = computed(() => [
+  {
+    key: 'shoots',
+    label: t('SYNAPSEOS.DASHBOARD.TODAY.SHOOTS'),
+    value: formatNumber(kpis.value.shoots_today),
   },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: '#5B6B7A', font: { size: 10, family: 'Inter' } },
-      border: { color: '#D7DFE8' },
-    },
-    y: {
-      beginAtZero: true,
-      grid: { color: 'rgba(215, 223, 232, 0.6)', drawBorder: false },
-      ticks: { color: '#5B6B7A', font: { size: 10, family: 'Inter' } },
-      border: { display: false },
-    },
+  {
+    key: 'scheduled',
+    label: t('SYNAPSEOS.DASHBOARD.TODAY.SCHEDULED'),
+    value: dryRun.value ? formatNumber(dryRunItems.value.length) : '—',
   },
-}));
+  {
+    key: 'handoffs',
+    label: t('SYNAPSEOS.DASHBOARD.TODAY.HANDOFFS'),
+    value: formatNumber(kpis.value.bot_takeovers_today),
+  },
+]);
 
-watch(period, fetchSummary);
-
-onMounted(() => {
-  fetchSummary();
-  refreshTimer.value = setInterval(fetchSummary, 30000);
-});
-
-onBeforeUnmount(() => {
-  if (refreshTimer.value) clearInterval(refreshTimer.value);
-});
+const errorDescription = computed(() =>
+  summary.value
+    ? t('SYNAPSEOS.DASHBOARD.ERROR.STALE', {
+        time: formatTime(updatedAt.value),
+      })
+    : t('SYNAPSEOS.DASHBOARD.ERROR.DESCRIPTION')
+);
 </script>
 
 <template>
   <div class="bg-s-bg h-full w-full flex-1 min-w-0 overflow-auto">
-    <!-- Header bar: compact mission-control style -->
-    <header
-      class="sticky top-0 z-10 bg-s-surface/95 backdrop-blur-sm border-b border-s-border px-4 md:px-6 py-3 flex flex-wrap items-center justify-between gap-3"
-    >
-      <div class="flex items-center gap-3 min-w-0">
-        <div
-          class="size-2 rounded-full bg-s-success animate-pulse"
+    <div class="p-4 md:p-6 flex flex-col gap-4 md:gap-6">
+      <SynapsePageHeader
+        :title="t('SYNAPSEOS.DASHBOARD.TITLE')"
+        :description="t('SYNAPSEOS.DASHBOARD.SUBTITLE', { days: period })"
+        :updated-at="error ? null : updatedAt"
+        :refreshing="refreshing"
+      >
+        <template #actions>
+          <div
+            class="flex items-center gap-1 p-1 rounded-lg bg-s-subtle border border-s-border"
+            role="group"
+            :aria-label="t('SYNAPSEOS.DASHBOARD.PERIOD_LABEL')"
+          >
+            <button
+              v-for="days in PERIOD_OPTIONS"
+              :key="days"
+              type="button"
+              class="px-3 py-1 text-xs font-semibold rounded-md transition-colors tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-s-focus"
+              :class="
+                period === days
+                  ? 'bg-s-surface text-s-primary shadow-s-sm'
+                  : 'text-s-muted hover:text-s-secondary'
+              "
+              :aria-pressed="period === days"
+              @click="period = days"
+            >
+              {{ t('SYNAPSEOS.DASHBOARD.PERIOD_DAYS', { days }) }}
+            </button>
+          </div>
+        </template>
+      </SynapsePageHeader>
+
+      <div
+        v-if="error"
+        role="alert"
+        class="flex flex-wrap items-center gap-3 rounded-lg border border-s-error/30 bg-s-error-soft text-s-error-text px-4 py-3 text-sm"
+      >
+        <span
+          class="i-lucide-triangle-alert size-4 shrink-0"
           aria-hidden="true"
         />
-        <div class="flex flex-col min-w-0">
-          <h1
-            class="text-sm md:text-base font-semibold text-s-primary leading-tight truncate"
-          >
-            {{ t('SYNAPSEOS.DASHBOARD.TITLE') }}
-          </h1>
-          <p class="text-xs text-s-muted">
-            {{ t('SYNAPSEOS.DASHBOARD.SUBTITLE', { days: period }) }}
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold">
+            {{ t('SYNAPSEOS.DASHBOARD.ERROR.TITLE') }}
           </p>
+          <p class="text-xs">{{ errorDescription }}</p>
         </div>
+        <SynapseButton
+          variant="outline"
+          size="sm"
+          icon="i-lucide-refresh-cw"
+          :loading="refreshing"
+          @click="fetchSummary"
+        >
+          {{ t('SYNAPSEOS.DASHBOARD.ERROR.RETRY') }}
+        </SynapseButton>
       </div>
-      <div
-        v-if="activeTab === 'overview'"
-        class="flex items-center gap-1 p-1 rounded-lg bg-s-subtle border border-s-border"
-      >
-        <button
-          v-for="opt in periodOptions"
-          :key="opt.value"
-          type="button"
-          class="px-3 py-1 text-xs font-semibold rounded-md transition-colors tabular-nums"
-          :class="[
-            period === opt.value
-              ? 'bg-s-surface text-s-primary shadow-s-sm'
-              : 'text-s-muted hover:text-s-secondary',
-          ]"
-          @click="period = opt.value"
-        >
-          {{ opt.label }}
-        </button>
-      </div>
-    </header>
 
-    <nav
-      v-if="tabs.length > 1"
-      class="px-4 md:px-6 flex gap-5 border-b border-s-border"
-    >
-      <button
-        v-for="tab in tabs"
-        :key="tab.key"
-        type="button"
-        class="py-2.5 text-xs font-semibold uppercase tracking-wide transition-colors border-b-2 -mb-px"
-        :class="[
-          activeTab === tab.key
-            ? 'text-s-primary border-s-accent-500'
-            : 'text-s-muted border-transparent hover:text-s-secondary',
-        ]"
-        @click="activeTab = tab.key"
-      >
-        {{ tab.label }}
-      </button>
-    </nav>
+      <template v-if="summary || !error">
+        <section class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+          <SynapseKpiCard
+            v-for="card in heroCards"
+            :key="card.key"
+            :title="card.title"
+            :label="card.label"
+            :value="card.value"
+            :icon="card.icon"
+            :tone="card.tone"
+            :hint="card.hint"
+            :delta="card.delta ?? null"
+            :delta-unit="card.deltaUnit"
+            :sparkline="card.sparkline"
+            :loading="loading"
+            size="lg"
+          />
+        </section>
 
-    <template v-if="activeTab === 'overview'">
-      <!-- HERO STRIP: 4 KPIs primários em faixa densa com divisores verticais (cockpit) -->
-      <section
-        class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-s-border bg-s-surface border-b border-s-border"
-      >
-        <div
-          v-for="kpi in primaryKpis"
-          :key="kpi.key"
-          class="px-4 md:px-6 py-5 flex flex-col gap-2 min-w-0"
-        >
-          <div class="flex items-center gap-2 text-s-muted">
-            <span class="size-3.5 shrink-0" :class="[kpi.icon]" />
-            <span
-              class="text-[10px] font-semibold uppercase tracking-wider truncate"
-            >
-              {{ kpi.label }}
-            </span>
-          </div>
-          <div
-            class="text-2xl md:text-3xl font-semibold text-s-primary tabular-nums leading-tight truncate"
-          >
-            {{ kpi.value }}
-          </div>
-          <p
-            v-if="kpi.hint"
-            class="text-[10px] text-s-muted leading-snug"
-          >
-            {{ kpi.hint }}
-          </p>
-        </div>
-      </section>
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
+          <SynapseKpiCard
+            v-for="card in secondaryCards"
+            :key="card.key"
+            :label="card.label"
+            :value="card.value"
+            :icon="card.icon"
+            :tone="card.tone"
+            :hint="card.hint"
+            :delta="card.delta ?? null"
+            :positive-is="card.positiveIs"
+            :sparkline="card.sparkline"
+            :loading="loading"
+          />
 
-      <!-- OPERATIONAL STRIP: indicadores de operação, inline -->
-      <section
-        class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-s-border bg-s-subtle/50 border-b border-s-border"
-      >
-        <div
-          v-for="op in operationalCards"
-          :key="op.key"
-          class="px-4 md:px-6 py-2.5 flex items-center justify-between gap-2 min-w-0"
-        >
-          <div class="flex flex-col min-w-0">
-            <span
-              class="text-[10px] font-semibold uppercase tracking-wider text-s-muted truncate"
-            >
-              {{ op.label }}
-            </span>
-            <span
-              v-if="op.hint"
-              class="text-[10px] text-s-muted/80 leading-snug truncate"
-            >
-              {{ op.hint }}
-            </span>
-          </div>
-          <span
-            class="text-sm font-semibold tabular-nums shrink-0"
-            :class="[op.valueClass]"
+          <section
+            class="col-span-2 bg-s-surface border border-s-border rounded-lg p-4 flex flex-col gap-3 min-w-0"
           >
-            {{ op.value }}
-          </span>
-        </div>
-      </section>
-
-      <!-- MAIN GRID: chart (2/3) + event feed (1/3) -->
-      <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2">
-          <div
-            class="bg-s-surface border border-s-border rounded-lg overflow-hidden"
-          >
-            <div
-              class="px-5 py-3 border-b border-s-border flex items-center justify-between"
-            >
-              <h3
-                class="text-xs font-semibold uppercase tracking-wider text-s-secondary"
+            <header class="flex flex-wrap items-baseline justify-between gap-2">
+              <h2
+                class="text-xs font-medium uppercase tracking-wider text-s-muted"
               >
-                {{ t('SYNAPSEOS.DASHBOARD.CHART.TITLE') }}
-              </h3>
-              <SynapseStatusPill tone="success" size="sm">
-                {{ period }}d
-              </SynapseStatusPill>
-            </div>
-            <div class="p-4 h-80">
-              <Chart
-                v-if="!loading && chartData.labels.length"
-                type="line"
-                :data="chartData"
-                :options="chartOptions"
-                class="h-full"
-              />
+                {{ t('SYNAPSEOS.DASHBOARD.TODAY.TITLE') }}
+              </h2>
+              <span class="text-xs text-s-muted">
+                {{ t('SYNAPSEOS.DASHBOARD.TODAY.HINT') }}
+              </span>
+            </header>
+            <dl class="grid grid-cols-3 gap-3">
               <div
-                v-else-if="loading"
-                class="h-full flex items-center justify-center text-xs text-s-muted"
+                v-for="stat in todayStats"
+                :key="stat.key"
+                class="flex flex-col gap-1 min-w-0"
               >
-                {{ t('SYNAPSEOS.DASHBOARD.LOADING') }}
-              </div>
-              <SynapseEmptyState
-                v-else
-                icon="i-lucide-line-chart"
-                :title="t('SYNAPSEOS.DASHBOARD.EMPTY_CHART_TITLE')"
-                :description="t('SYNAPSEOS.DASHBOARD.EMPTY_CHART_DESCRIPTION')"
-                size="sm"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div
-          class="bg-s-surface border border-s-border rounded-lg overflow-hidden flex flex-col"
-        >
-          <div
-            class="px-5 py-3 border-b border-s-border flex items-center justify-between"
-          >
-            <h3
-              class="text-xs font-semibold uppercase tracking-wider text-s-secondary"
-            >
-              {{ t('SYNAPSEOS.DASHBOARD.RECENT_EVENTS.TITLE') }}
-            </h3>
-            <span
-              v-if="recentEvents.length"
-              class="text-[10px] font-mono text-s-muted tabular-nums"
-            >
-              {{ recentEvents.length }}
-            </span>
-          </div>
-          <ul
-            v-if="recentEvents.length"
-            class="flex flex-col divide-y divide-s-border-subtle overflow-auto max-h-80"
-          >
-            <li
-              v-for="event in recentEvents"
-              :key="event.id"
-              class="flex items-start gap-3 px-5 py-3 hover:bg-s-subtle/50 transition-colors cursor-pointer"
-              role="button"
-              tabindex="0"
-              @click="openAlert(event)"
-              @keydown.enter="openAlert(event)"
-            >
-              <span
-                :class="[
-                  'size-4 mt-0.5 shrink-0 text-s-success-text',
-                  event.meta.icon,
-                ]"
-              />
-              <div class="flex flex-col min-w-0 flex-1 gap-1">
-                <!-- Cliente + veículo de interesse (formato pedido pelo produto) -->
-                <span class="text-sm font-medium text-s-primary truncate">
-                  {{ event.contact_name || '—' }}
-                </span>
-                <div class="flex items-center gap-2 flex-wrap">
-                  <SynapseBadge tone="brand">
-                    🚗 {{ event.modelo_interesse || 'a definir' }}
-                  </SynapseBadge>
-                  <span class="text-[11px] font-mono text-s-muted tabular-nums">
-                    {{ event.relativeTime }}
+                <dt class="text-xs text-s-secondary truncate">
+                  {{ stat.label }}
+                </dt>
+                <dd>
+                  <SynapseSkeleton v-if="loading" class="h-7 w-12" />
+                  <span
+                    v-else
+                    class="font-synapse-display text-2xl font-semibold text-s-primary tabular-nums"
+                  >
+                    {{ stat.value }}
                   </span>
-                </div>
+                </dd>
               </div>
-            </li>
-          </ul>
-          <div v-else class="flex-1 flex items-center">
-            <SynapseEmptyState
-              icon="i-lucide-activity"
-              :title="t('SYNAPSEOS.DASHBOARD.EMPTY_EVENTS_TITLE')"
-              :description="t('SYNAPSEOS.DASHBOARD.EMPTY_EVENTS_DESCRIPTION')"
-              size="sm"
-              class="w-full"
-            />
-          </div>
+            </dl>
+          </section>
         </div>
-      </div>
 
-      <!-- DISPAROS PROGRAMADOS HOJE (dry-run read-only; snapshot 08:00/13:30) -->
-      <div class="px-4 md:px-6 pb-6">
-        <div
-          class="bg-s-surface border border-s-border rounded-lg overflow-hidden flex flex-col"
-        >
-          <div
-            class="px-5 py-3 border-b border-s-border flex items-center justify-between"
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <DashboardFunnel :funnel="summary?.funnel" :loading="loading" />
+          <DashboardActivityChart
+            :daily="daily"
+            :loading="loading"
+            class="lg:col-span-2"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <DashboardRecentAlerts
+            :events="summary?.recent_events || []"
+            :loading="loading"
+            :now="updatedAt"
+          />
+
+          <!-- DISPAROS PROGRAMADOS HOJE (dry-run read-only; snapshot 08:00/13:30) -->
+          <section
+            class="bg-s-surface border border-s-border rounded-lg flex flex-col min-w-0"
           >
-            <h3
-              class="text-xs font-semibold uppercase tracking-wider text-s-secondary"
+            <header
+              class="px-4 py-3 border-b border-s-border flex items-center justify-between gap-3"
             >
-              {{ t('SYNAPSEOS.DASHBOARD.DRY_RUN.TITLE') }}
-            </h3>
-            <span
-              v-if="dryRun"
-              class="text-[10px] font-mono text-s-muted tabular-nums"
-            >
-              {{ dryRunItems.length }}
-            </span>
-          </div>
-          <ul
-            v-if="dryRunItems.length"
-            class="flex flex-col divide-y divide-s-border-subtle overflow-auto max-h-80"
-          >
-            <li
-              v-for="(item, idx) in dryRunItems"
-              :key="idx"
-              class="flex items-center gap-3 px-5 py-2.5"
-            >
-              <SynapseBadge :tone="item.tipo === 'disparo' ? 'brand' : 'neutral'">
-                {{ item.tipo }}
-              </SynapseBadge>
+              <h2 class="text-sm font-semibold text-s-primary">
+                {{ t('SYNAPSEOS.DASHBOARD.DRY_RUN.TITLE') }}
+              </h2>
               <span
-                class="text-sm font-medium text-s-primary truncate flex-1"
+                v-if="dryRun"
+                class="text-xs font-mono text-s-muted tabular-nums"
               >
-                {{ item.nome }}
+                {{ dryRunItems.length }}
               </span>
-              <span class="text-[11px] font-mono text-s-muted tabular-nums">
-                ••••{{ item.tel4 }}
-              </span>
-            </li>
-          </ul>
-          <div v-else class="px-5 py-6">
+            </header>
+            <div v-if="loading" class="p-4 flex flex-col gap-3">
+              <SynapseSkeleton v-for="n in 4" :key="n" class="h-6 w-full" />
+            </div>
+            <ul
+              v-else-if="dryRunItems.length"
+              class="flex flex-col divide-y divide-s-border overflow-auto max-h-80"
+            >
+              <li
+                v-for="item in dryRunItems"
+                :key="item.key"
+                class="flex items-center gap-3 px-4 py-2.5"
+              >
+                <SynapseBadge :tone="item.tone">{{ item.label }}</SynapseBadge>
+                <span
+                  class="text-sm font-medium text-s-primary truncate flex-1"
+                >
+                  {{ item.name }}
+                </span>
+                <span class="text-xs font-mono text-s-muted tabular-nums">
+                  {{
+                    t('SYNAPSEOS.DASHBOARD.DRY_RUN.PHONE_END', {
+                      digits: item.tel4,
+                    })
+                  }}
+                </span>
+              </li>
+            </ul>
             <SynapseEmptyState
+              v-else
               icon="i-lucide-send"
               :title="t('SYNAPSEOS.DASHBOARD.DRY_RUN.EMPTY_TITLE')"
               :description="t('SYNAPSEOS.DASHBOARD.DRY_RUN.EMPTY_DESC')"
               size="sm"
-              class="w-full"
+              class="px-4"
             />
-          </div>
+          </section>
         </div>
-      </div>
-    </template>
-
-    <!-- Popup de detalhes do alerta -->
-    <Dialog
-      ref="alertDialog"
-      :title="t('SYNAPSEOS.DASHBOARD.ALERT_DETAILS.TITLE')"
-      :show-confirm-button="false"
-      :cancel-button-label="t('SYNAPSEOS.DASHBOARD.ALERT_DETAILS.CLOSE')"
-    >
-      <div v-if="selectedAlert" class="flex flex-col gap-3 text-sm">
-        <div class="flex flex-col gap-0.5">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-s-muted">
-            {{ t('SYNAPSEOS.DASHBOARD.ALERT_DETAILS.CLIENT') }}
-          </span>
-          <span class="text-s-primary font-medium">{{ selectedAlert.contact_name || '—' }}</span>
-        </div>
-        <div class="flex flex-col gap-0.5">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-s-muted">
-            {{ t('SYNAPSEOS.DASHBOARD.ALERT_DETAILS.INTEREST') }}
-          </span>
-          <span class="text-s-primary">🚗 {{ selectedAlert.modelo_interesse || 'a definir' }}</span>
-        </div>
-        <div v-if="selectedAlert.tipo" class="flex flex-col gap-0.5">
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-s-muted">
-            {{ t('SYNAPSEOS.DASHBOARD.ALERT_DETAILS.REASON') }}
-          </span>
-          <span class="text-s-primary">{{ selectedAlert.tipo }}</span>
-        </div>
-        <div
-          v-if="selectedAlert.metadata && selectedAlert.metadata.observacoes"
-          class="flex flex-col gap-0.5"
-        >
-          <span class="text-[10px] font-semibold uppercase tracking-wider text-s-muted">
-            {{ t('SYNAPSEOS.DASHBOARD.ALERT_DETAILS.NOTES') }}
-          </span>
-          <span class="text-s-secondary whitespace-pre-line">{{ selectedAlert.metadata.observacoes }}</span>
-        </div>
-        <a
-          v-if="selectedAlertConversationUrl"
-          :href="selectedAlertConversationUrl"
-          class="text-s-accent-600 hover:underline text-xs font-semibold mt-1"
-        >
-          {{ t('SYNAPSEOS.DASHBOARD.ALERT_DETAILS.OPEN_CONVERSATION') }} →
-        </a>
-      </div>
-    </Dialog>
+      </template>
+    </div>
   </div>
 </template>

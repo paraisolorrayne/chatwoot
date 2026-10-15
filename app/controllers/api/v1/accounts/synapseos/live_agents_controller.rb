@@ -26,7 +26,9 @@ class Api::V1::Accounts::Synapseos::LiveAgentsController < Api::V1::Accounts::Ba
     conversation_ids = conversations.map(&:id)
     return {} if conversation_ids.empty?
 
-    last_ids = Message.where(conversation_id: conversation_ids).chat
+    # unscope(:order): o default_scope de Message ordena por created_at, o que
+    # quebra o GROUP BY no Postgres (GroupingError -> 500).
+    last_ids = Message.where(conversation_id: conversation_ids).chat.unscope(:order)
                       .group(:conversation_id).maximum(:id)
     messages_by_id = Message.where(id: last_ids.values).index_by(&:id)
     last_ids.transform_values { |msg_id| messages_by_id[msg_id] }

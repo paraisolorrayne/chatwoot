@@ -57,6 +57,7 @@ export default {
     :conversation-type="conversationType"
     :selected="isConversationSelected(source.id)"
     :show-assignee="showAssignee"
+    show-lead-stage
     enable-context-menu
     @select-conversation="selectConversation"
     @de-select-conversation="deSelectConversation"

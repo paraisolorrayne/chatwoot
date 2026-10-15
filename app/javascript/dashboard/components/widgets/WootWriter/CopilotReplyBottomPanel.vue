@@ -41,7 +41,7 @@ const handleSubmit = () => {
     />
     <NextButton
       :label="acceptLabel"
-      class="bg-s-brand text-white"
+      class="bg-s-brand text-s-on-brand"
       solid
       sm
       :disabled="isGeneratingContent"

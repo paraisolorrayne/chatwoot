@@ -12,10 +12,20 @@
 // blocos `colorScheme.light` e `colorScheme.dark` referenciam as mesmas vars
 // — PrimeVue só precisa de ambos os blocos definidos pra ativar o switch via
 // `darkModeSelector: '.dark'` (config em entrypoints/dashboard.js).
+//
+// Tokens de COMPONENTE fora de `colorScheme` viram vars declaradas só no
+// `:root` (<html>), e o `var(--s-*)` delas é resolvido ali — com os valores
+// claros, porque o Chatwoot põe `.dark` no <body>. Por isso as cores de
+// componente vão em `bothSchemes`: o bloco dark é redeclarado sob `.dark` e
+// resolve com as vars escuras (era o DataTable claro no tema escuro).
 import { definePreset } from '@primevue/themes';
 import Aura from '@primevue/themes/aura';
 
 const v = name => `rgb(var(${name}))`;
+
+const bothSchemes = tokens => ({
+  colorScheme: { light: tokens, dark: tokens },
+});
 
 const sharedScheme = {
   primary: {
@@ -95,42 +105,73 @@ export const SynapseOSPreset = definePreset(Aura, {
       root: { borderRadius: '0.5rem' },
     },
     card: {
-      root: {
-        borderRadius: '1rem',
+      root: { borderRadius: '1rem', shadow: 'var(--s-shadow-md)' },
+      body: { padding: '1.5rem' },
+      title: { fontSize: '1rem', fontWeight: '600' },
+      ...bothSchemes({
+        root: {
+          background: v('--s-surface'),
+          borderColor: v('--s-border'),
+          color: v('--s-text-primary'),
+        },
+      }),
+    },
+    datatable: bothSchemes({
+      root: { borderColor: v('--s-border') },
+      header: {
         background: v('--s-surface'),
         borderColor: v('--s-border'),
         color: v('--s-text-primary'),
-        shadow: 'var(--s-shadow-md)',
       },
-      body: { padding: '1.5rem' },
-      title: { fontSize: '1rem', fontWeight: '600' },
-    },
-    datatable: {
       headerCell: {
-        background: v('--s-bg'),
-        color: v('--s-text-muted'),
+        background: v('--s-subtle'),
+        hoverBackground: v('--s-hover'),
+        selectedBackground: v('--s-brand-soft'),
         borderColor: v('--s-border'),
-      },
-      bodyCell: {
-        borderColor: v('--s-border-subtle'),
+        color: v('--s-text-secondary'),
+        hoverColor: v('--s-text-primary'),
+        selectedColor: v('--s-brand-text'),
       },
       row: {
         background: v('--s-surface'),
-        hoverBackground: v('--s-subtle'),
-        stripedBackground: v('--s-bg'),
+        hoverBackground: v('--s-hover'),
+        selectedBackground: v('--s-brand-soft'),
+        color: v('--s-text-primary'),
+        hoverColor: v('--s-text-primary'),
+        selectedColor: v('--s-brand-text'),
+        stripedBackground: v('--s-subtle'),
       },
-    },
-    dialog: {
-      root: {
-        borderRadius: '1rem',
+      bodyCell: {
+        borderColor: v('--s-border-subtle'),
+        selectedBorderColor: v('--s-brand-soft-hover'),
+      },
+      footerCell: {
+        background: v('--s-subtle'),
+        borderColor: v('--s-border'),
+        color: v('--s-text-secondary'),
+      },
+      footer: {
         background: v('--s-surface'),
         borderColor: v('--s-border'),
-        color: v('--s-text-primary'),
-        shadow: 'var(--s-shadow-lg)',
+        color: v('--s-text-secondary'),
       },
+      sortIcon: {
+        color: v('--s-text-muted'),
+        hoverColor: v('--s-text-secondary'),
+      },
+    }),
+    dialog: {
+      root: { borderRadius: '1rem', shadow: 'var(--s-shadow-lg)' },
       header: { padding: '1.25rem 1.5rem 1rem' },
       title: { fontSize: '1rem', fontWeight: '600' },
       content: { padding: '0.5rem 1.5rem 1.25rem' },
+      ...bothSchemes({
+        root: {
+          background: v('--s-surface'),
+          borderColor: v('--s-border'),
+          color: v('--s-text-primary'),
+        },
+      }),
     },
     tag: {
       root: {
