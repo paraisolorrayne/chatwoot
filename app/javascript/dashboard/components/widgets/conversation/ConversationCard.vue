@@ -14,6 +14,9 @@ import CardPriorityIcon from 'dashboard/components-next/Conversation/Conversatio
 import SLACardLabel from './components/SLACardLabel.vue';
 import ContextMenu from 'dashboard/components/ui/ContextMenu.vue';
 import VoiceCallStatus from './VoiceCallStatus.vue';
+import SynapseStatusBadge from 'dashboard/components-next/synapseos/SynapseStatusBadge.vue';
+import { useLeadStagesStore } from 'dashboard/store/synapseos/useLeadStages';
+import { resolveStatus } from 'dashboard/helper/synapseos/statusBadge';
 
 const props = defineProps({
   activeLabel: { type: String, default: '' },
@@ -28,6 +31,8 @@ const props = defineProps({
   compact: { type: Boolean, default: false },
   enableContextMenu: { type: Boolean, default: false },
   allowedContextMenuOptions: { type: Array, default: () => [] },
+  // CUSTOMIZAÇÃO_SYNAPSEOS — chip do estágio do lead (a lista busca em lote)
+  showLeadStage: { type: Boolean, default: false },
 });
 
 const emit = defineEmits([
@@ -49,6 +54,8 @@ const router = useRouter();
 const store = useStore();
 
 const hovered = ref(false);
+// CUSTOMIZAÇÃO_SYNAPSEOS — foco por teclado também mostra o checkbox de seleção em massa
+const focused = ref(false);
 const showContextMenu = ref(false);
 const contextMenu = ref({ x: null, y: null });
 
@@ -60,6 +67,7 @@ const resetState = () => {
     emit('contextMenuToggle', false);
   }
   hovered.value = false;
+  focused.value = false;
   showContextMenu.value = false;
   contextMenu.value = { x: null, y: null };
 };
@@ -124,8 +132,20 @@ const showMetaSection = computed(() => {
 
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 
+// CUSTOMIZAÇÃO_SYNAPSEOS — estágio do lead: rótulo do Fykos para os estágios
+// conhecidos; nos demais, o nome do estágio configurado na conta.
+const leadStages = useLeadStagesStore();
+const leadStage = computed(() =>
+  props.showLeadStage ? leadStages.stageFor(props.chat.id) : null
+);
+const leadStageLabel = computed(() =>
+  resolveStatus(leadStage.value?.slug)?.label ? '' : leadStage.value?.name
+);
+
 const showLabelsSection = computed(() => {
-  return props.chat.labels?.length > 0 || hasSlaPolicyId.value;
+  return (
+    props.chat.labels?.length > 0 || hasSlaPolicyId.value || !!leadStage.value
+  );
 });
 
 const messagePreviewClass = computed(() => {
@@ -169,6 +189,16 @@ const onCardClick = e => {
   if (isActiveChat.value) return;
 
   router.push({ path });
+};
+
+// CUSTOMIZAÇÃO_SYNAPSEOS — card focável (Enter/Espaço abrem), com anel de foco
+// visível; a conversa aberta fica mais marcada que o hover (fundo + borda accent).
+const onFocusIn = e => {
+  focused.value = e.target.matches(':focus-visible');
+};
+
+const onFocusOut = e => {
+  if (!e.currentTarget.contains(e.relatedTarget)) focused.value = false;
 };
 
 const onThumbnailHover = () => {
@@ -249,20 +279,26 @@ const deleteConversation = () => {
 
 <template>
   <div
-    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 ltr:border-l-[3px] rtl:border-r-[3px] border-solid cursor-pointer conversation hover:bg-s-subtle dark:hover:bg-s-subtle group transition-colors"
+    role="button"
+    tabindex="0"
+    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 ltr:border-l-[3px] rtl:border-r-[3px] border-solid cursor-pointer conversation group transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-s-focus"
     :class="[
       {
-        'active animate-card-select bg-s-accent-100 ltr:border-s-accent-500 rtl:border-s-accent-500':
+        'active animate-card-select bg-s-brand-soft ltr:border-s-accent rtl:border-s-accent':
           isActiveChat,
-        'bg-s-subtle ltr:border-transparent rtl:border-transparent':
+        'bg-s-subtle hover:bg-s-hover ltr:border-transparent rtl:border-transparent':
           selected && !isActiveChat,
-        'ltr:border-transparent rtl:border-transparent':
+        'hover:bg-s-hover ltr:border-transparent rtl:border-transparent':
           !isActiveChat && !selected,
         'px-0': compact,
         'px-3': !compact,
       },
     ]"
     @click="onCardClick"
+    @keydown.enter.self.prevent="onCardClick"
+    @keydown.space.self.prevent="onCardClick"
+    @focusin="onFocusIn"
+    @focusout="onFocusOut"
     @contextmenu="openContextMenu($event)"
   >
     <div
@@ -282,7 +318,7 @@ const deleteConversation = () => {
       >
         <template #overlay="{ size }">
           <label
-            v-if="hovered || selected"
+            v-if="hovered || selected || focused"
             class="flex items-center justify-center rounded-full cursor-pointer absolute inset-0 z-10 backdrop-blur-[2px]"
             :style="{ width: `${size}px`, height: `${size}px` }"
             @click.stop
@@ -330,7 +366,7 @@ const deleteConversation = () => {
         </div>
       </div>
       <h4
-        class="conversation--user text-sm my-0 mx-2 capitalize pt-0.5 text-ellipsis overflow-hidden whitespace-nowrap flex-1 min-w-0 ltr:pr-16 rtl:pl-16 text-s-primary"
+        class="conversation--user text-sm my-0 mx-2 pt-0.5 text-ellipsis overflow-hidden whitespace-nowrap flex-1 min-w-0 ltr:pr-20 rtl:pl-20 text-s-primary"
         :class="hasUnread ? 'font-semibold' : 'font-medium'"
       >
         {{ currentContact.name }}
@@ -387,8 +423,20 @@ const deleteConversation = () => {
         :conversation-labels="chat.labels"
         class="mt-0.5 mx-2 mb-0"
       >
-        <template v-if="hasSlaPolicyId" #before>
-          <SLACardLabel :chat="chat" class="ltr:mr-1 rtl:ml-1" />
+        <template v-if="hasSlaPolicyId || leadStage" #before>
+          <SynapseStatusBadge
+            v-if="leadStage"
+            :status="leadStage.slug || ''"
+            :stage-type="leadStage.stage_type"
+            :label="leadStageLabel"
+            size="sm"
+            class="ltr:mr-1 rtl:ml-1"
+          />
+          <SLACardLabel
+            v-if="hasSlaPolicyId"
+            :chat="chat"
+            class="ltr:mr-1 rtl:ml-1"
+          />
         </template>
       </CardLabels>
     </div>

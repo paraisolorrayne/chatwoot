@@ -6,6 +6,8 @@ const state = {
   mineCount: 0,
   unAssignedCount: 0,
   allCount: 0,
+  // CUSTOMIZAÇÃO_SYNAPSEOS — aba "Precisa de você"
+  needsHumanCount: 0,
 };
 
 export const getters = {
@@ -56,9 +58,11 @@ export const mutations = {
       mine_count: mineCount,
       unassigned_count: unAssignedCount,
       all_count: allCount,
+      needs_human_count: needsHumanCount,
     } = {}
   ) {
     $state.mineCount = mineCount;
+    $state.needsHumanCount = needsHumanCount;
     $state.allCount = allCount;
     $state.unAssignedCount = unAssignedCount;
     $state.updatedOn = new Date();

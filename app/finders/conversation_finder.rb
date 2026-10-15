@@ -215,3 +215,5 @@ class ConversationFinder
   end
 end
 ConversationFinder.prepend_mod_with('ConversationFinder')
+# CUSTOMIZAÇÃO_SYNAPSEOS — aba "Precisa de você" (assignee_type=needs_human) + needs_human_count
+ConversationFinder.prepend(Synapseos::ConversationFinderExtension)
