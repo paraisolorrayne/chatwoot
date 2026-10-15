@@ -5,6 +5,7 @@ class Api::V1::Accounts::Synapseos::PipelineController < Api::V1::Accounts::Base
     ensure_default_stages
     @stages = ::Synapseos::PipelineStage.where(account_id: Current.account.id).ordered
     @leads = enriched_leads
+    @last_messages = last_messages_by_conversation(@leads)
   end
 
   private
@@ -34,12 +35,26 @@ class Api::V1::Accounts::Synapseos::PipelineController < Api::V1::Accounts::Base
     end
   end
 
+  # CUSTOMIZAÇÃO_SYNAPSEOS: o card do board mostra quem atende (consultor ou bot
+  # da inbox) e o último negócio; tudo pré-carregado pra não fazer N+1.
   def enriched_leads
     leads = ::Synapseos::Lead
             .where(account_id: Current.account.id)
-            .includes(:conversation, :contact, :pipeline_stage)
+            .includes(:deals, { contact: { avatar_attachment: :blob } }, { assignee: { avatar_attachment: :blob } },
+                      conversation: [:contact, :assignee_agent_bot, { assignee: { avatar_attachment: :blob } },
+                                     { inbox: { agent_bot_inbox: :agent_bot } }])
     leads = leads.where(pipeline_stage_id: params[:stage_id]) if params[:stage_id].present?
     leads.order(updated_at: :desc).limit(500)
+  end
+
+  # Última mensagem (não privada) de cada conversa em 2 queries. `unscope(:order)`
+  # tira o default_scope de Message, que quebra o GROUP BY no Postgres.
+  def last_messages_by_conversation(leads)
+    conversation_ids = leads.map(&:conversation_id)
+    return {} if conversation_ids.empty?
+
+    last_ids = Message.where(conversation_id: conversation_ids).chat.unscope(:order).group(:conversation_id).maximum(:id)
+    Message.where(id: last_ids.values).index_by(&:conversation_id)
   end
 
   def check_authorization
