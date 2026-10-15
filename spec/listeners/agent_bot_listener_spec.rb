@@ -39,6 +39,22 @@ describe AgentBotListener do
         listener.message_created(event)
       end
 
+      context 'when the contact is internal (SynapseOS support)' do
+        let!(:message) do
+          contact = create(:contact, account: account, phone_number: Synapseos::SupportRequestService.phone_number)
+          contact_inbox = create(:contact_inbox, contact: contact, inbox: inbox, source_id: '5511991847629')
+          internal = create(:conversation, account: account, inbox: inbox, contact: contact, contact_inbox: contact_inbox)
+          create(:message, message_type: 'incoming', account: account, inbox: inbox, conversation: internal, sender: contact)
+        end
+
+        it 'does not send the message to the inbox bot nor to the conversation bot' do
+          create(:agent_bot_inbox, inbox: inbox, agent_bot: agent_bot)
+          message.conversation.update!(assignee_agent_bot: create(:agent_bot), assignee: nil)
+          expect(AgentBots::WebhookJob).not_to receive(:perform_later)
+          listener.message_created(event)
+        end
+      end
+
       context 'when conversation has a different assignee agent bot' do
         let!(:conversation_bot) { create(:agent_bot) }
 

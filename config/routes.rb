@@ -58,6 +58,7 @@ Rails.application.routes.draw do
             post :bulk_create, on: :collection
           end
           namespace :synapseos do
+            resources :support_requests, only: [:index, :create]
             resources :live_agents, only: [:index] do
               member { get :conversations }
             end

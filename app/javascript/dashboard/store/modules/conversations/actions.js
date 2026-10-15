@@ -55,8 +55,10 @@ const actions = {
         data,
         params.assigneeType
       );
+      return true;
     } catch (error) {
-      // Handle error
+      commit(types.CLEAR_LIST_LOADING_STATUS);
+      return false;
     }
   },
 
@@ -70,8 +72,10 @@ const actions = {
         data,
         'appliedFilters'
       );
+      return true;
     } catch (error) {
-      // Handle error
+      commit(types.CLEAR_LIST_LOADING_STATUS);
+      return false;
     }
   },
 

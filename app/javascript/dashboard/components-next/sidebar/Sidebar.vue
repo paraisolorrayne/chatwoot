@@ -317,6 +317,13 @@ const menuItems = computed(() => {
     // CUSTOMIZAÇÃO_SYNAPSEOS: Campaigns e Help Center (Portals) escondidos da sidebar.
     // As rotas permanecem registradas para não quebrar automações/integrações existentes.
     {
+      name: 'SynapseOS Support',
+      label: t('SYNAPSEOS.SUPPORT.TITLE'),
+      icon: 'i-lucide-life-buoy',
+      to: accountScopedRoute('synapseos_support'),
+      activeOn: ['synapseos_support'],
+    },
+    {
       name: 'Settings',
       label: t('SIDEBAR.SETTINGS'),
       icon: 'i-lucide-bolt',

@@ -1,4 +1,6 @@
 class MessageFinder
+  HISTORY_PAGE_SIZE = 100
+
   def initialize(conversation, params)
     @conversation = conversation
     @params = params
@@ -37,7 +39,7 @@ class MessageFinder
   end
 
   def messages_before(before_id)
-    messages.reorder('created_at desc').where('id < ?', before_id).limit(20).reverse
+    messages.reorder('created_at desc').where('id < ?', before_id).limit(HISTORY_PAGE_SIZE).reverse
   end
 
   def messages_between(after_id, before_id)
@@ -45,6 +47,6 @@ class MessageFinder
   end
 
   def messages_latest
-    messages.reorder('created_at desc').limit(20).reverse
+    messages.reorder('created_at desc').limit(HISTORY_PAGE_SIZE).reverse
   end
 end

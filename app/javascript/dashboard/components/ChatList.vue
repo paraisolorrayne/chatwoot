@@ -28,6 +28,7 @@ import DeleteCustomViews from 'dashboard/routes/dashboard/customviews/DeleteCust
 import ConversationBulkActions from './widgets/conversation/conversationBulkActions/Index.vue';
 import TeleportWithDirection from 'dashboard/components-next/TeleportWithDirection.vue';
 import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
 import IntersectionObserver from 'dashboard/components/IntersectionObserver.vue';
 import ConversationResolveAttributesModal from 'dashboard/components-next/ConversationWorkflow/ConversationResolveAttributesModal.vue';
 import SynapseEmptyState from 'dashboard/components-next/synapseos/SynapseEmptyState.vue';
@@ -268,33 +269,11 @@ const conversationCustomAttributes = useFunctionGetter(
   'conversation_attribute'
 );
 
-const activeAssigneeTabCount = computed(() => {
-  const count = assigneeTabItems.value.find(
-    item => item.key === activeAssigneeTab.value
-  ).count;
-  return count;
-});
-
-const conversationListPagination = computed(() => {
-  const conversationsPerPage = 25;
-  const hasChatsOnView =
-    chatsOnView.value &&
-    Array.isArray(chatsOnView.value) &&
-    !chatsOnView.value.length;
-  const isNoFiltersOrFoldersAndChatListNotEmpty =
-    !hasAppliedFiltersOrActiveFolders.value && hasChatsOnView;
-  const isUnderPerPage =
-    chatsOnView.value.length < conversationsPerPage &&
-    activeAssigneeTabCount.value < conversationsPerPage &&
-    activeAssigneeTabCount.value > chatsOnView.value.length;
-
-  if (isNoFiltersOrFoldersAndChatListNotEmpty && isUnderPerPage) {
-    return 1;
-  }
-
+const conversationListPagination = computed(
   // CUSTOMIZAÇÃO_SYNAPSEOS: a store de páginas não conhece a aba needs_human
-  return (currentPage.value || 0) + 1;
-});
+  () => (currentPage.value || 0) + 1
+);
+const listError = ref(false);
 
 const conversationFilters = computed(() => {
   return {
@@ -431,7 +410,8 @@ function setFiltersFromUISettings() {
     : wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC;
 }
 
-function emitConversationLoaded() {
+function emitConversationLoaded(result) {
+  listError.value = result === false;
   emit('conversationLoad');
 }
 
@@ -614,6 +594,7 @@ function fetchConversations() {
 }
 
 function resetAndFetchData() {
+  listError.value = false;
   appliedFilter.value = [];
   resetBulkActions();
   leadStages.reset();
@@ -635,6 +616,8 @@ function loadMoreConversations() {
     return;
   }
 
+  listError.value = false;
+
   if (!hasAppliedFiltersOrActiveFolders.value) {
     fetchConversations();
   } else if (hasActiveFolders.value) {
@@ -650,7 +633,7 @@ function loadMoreConversations() {
 // IntersectionObserver triggers as soon as the sentinel is visible.
 const intersectionObserverOptions = computed(() => ({
   root: conversationListRef.value,
-  rootMargin: '100px 0px 100px 0px',
+  rootMargin: '600px 0px 600px 0px',
 }));
 
 function updateAssigneeTab(selectedTab) {
@@ -958,10 +941,10 @@ watch(conversationFilters, (newVal, oldVal) => {
 
 <template>
   <div
-    class="flex flex-col flex-shrink-0 conversations-list-wrap bg-s-surface"
+    class="flex flex-col flex-shrink-0 min-h-0 conversations-list-wrap bg-s-surface border-r border-s-border-subtle"
     :class="[
       { hidden: !showConversationList },
-      isOnExpandedLayout ? 'basis-full' : 'w-full md:w-[340px] 2xl:w-[412px]',
+      isOnExpandedLayout ? 'basis-full' : 'w-full md:w-[340px] 2xl:w-[380px]',
     ]"
   >
     <!-- CUSTOMIZAÇÃO_SYNAPSEOS: largura total abaixo de md (painel único no mobile) -->
@@ -1040,7 +1023,7 @@ watch(conversationFilters, (newVal, oldVal) => {
     />
     <div
       ref="conversationListRef"
-      class="flex-1 min-h-0 overflow-y-auto conversations-list"
+      class="flex-1 min-h-0 overflow-y-auto overscroll-contain conversations-list px-2 pb-2"
       :class="{ '!overflow-hidden': isContextMenuOpen }"
     >
       <Virtualizer
@@ -1067,10 +1050,32 @@ watch(conversationFilters, (newVal, oldVal) => {
         {{ $t('CHAT_LIST.EOF') }}
       </p>
       <IntersectionObserver
-        v-else
+        v-else-if="!listError && !hasCurrentPageEndReached"
         :options="intersectionObserverOptions"
         @observed="loadMoreConversations"
       />
+      <div
+        v-if="!chatListLoading && !hasCurrentPageEndReached"
+        class="px-3 py-4 text-center"
+      >
+        <p v-if="listError" role="alert" class="text-sm text-s-error-text mb-3">
+          {{ $t('SYNAPSEOS.CONVERSATIONS.LOAD_ERROR') }}
+        </p>
+        <Button
+          ghost
+          sm
+          :label="$t('SYNAPSEOS.CONVERSATIONS.LOAD_MORE')"
+          @click="loadMoreConversations"
+        />
+      </div>
+    </div>
+    <div
+      v-if="conversationList.length"
+      class="border-t border-s-border-subtle px-4 py-2 text-xs text-s-muted bg-s-bg"
+    >
+      {{
+        $t('SYNAPSEOS.CONVERSATIONS.LOADED', { count: conversationList.length })
+      }}
     </div>
     <Dialog
       ref="deleteConversationDialogRef"
