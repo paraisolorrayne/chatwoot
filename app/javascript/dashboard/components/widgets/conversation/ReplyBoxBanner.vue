@@ -7,6 +7,8 @@ import { useI18n } from 'vue-i18n';
 import wootConstants from 'dashboard/constants/globals';
 
 import Banner from 'dashboard/components/ui/Banner.vue';
+// CUSTOMIZAÇÃO_SYNAPSEOS: aviso de que responder pausa a IA.
+import { useBotControl, HUMAN_LOCK_MINUTES } from './synapseos/useBotControl';
 
 const props = defineProps({
   message: {
@@ -93,6 +95,12 @@ const reopenConversation = async () => {
   });
 };
 
+// CUSTOMIZAÇÃO_SYNAPSEOS
+const { bot, isAutonomous } = useBotControl();
+const showBotPauseHint = computed(
+  () => isAutonomous.value && !props.isOnPrivateNote
+);
+
 const onClickBotHandoff = async () => {
   try {
     await reopenConversation();
@@ -109,6 +117,18 @@ const onClickBotHandoff = async () => {
 </script>
 
 <template>
+  <p
+    v-if="showBotPauseHint"
+    class="flex items-center gap-1.5 mx-3 mt-2 mb-1.5 text-xs text-s-sombra-text"
+  >
+    <span class="i-lucide-pause size-3.5 shrink-0" aria-hidden="true" />
+    {{
+      $t('SYNAPSEOS.CONVERSATION.CONTROL.SEND_PAUSES_HINT', {
+        bot: bot.name,
+        minutes: HUMAN_LOCK_MINUTES,
+      })
+    }}
+  </p>
   <Banner
     v-if="showSelfAssignBanner && !showBotHandoffBanner"
     action-button-variant="ghost"

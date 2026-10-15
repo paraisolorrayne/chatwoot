@@ -7,6 +7,7 @@ import {
 } from 'dashboard/composables/store';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useUISettings } from 'dashboard/composables/useUISettings';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 
 import AccordionItem from 'dashboard/components/Accordion/AccordionItem.vue';
@@ -17,6 +18,8 @@ import ContactInfo from './contact/ContactInfo.vue';
 import ContactNotes from './contact/ContactNotes.vue';
 // CUSTOMIZAÇÃO_SYNAPSEOS: painel lateral com dados Syonet/NBS.
 import SystemLegadoPanel from './contact/SystemLegadoPanel.vue';
+// CUSTOMIZAÇÃO_SYNAPSEOS: card do lead (etapa, interesse, handoff) no topo do painel.
+import LeadCard from 'dashboard/components/widgets/conversation/synapseos/LeadCard.vue';
 import ConversationInfo from './ConversationInfo.vue';
 import CustomAttributes from './customAttributes/CustomAttributes.vue';
 import Draggable from 'vuedraggable';
@@ -38,11 +41,23 @@ const props = defineProps({
 });
 
 const {
+  uiSettings,
   updateUISettings,
   isContactSidebarItemOpen,
   conversationSidebarItemsOrder,
   toggleSidebarUIState,
 } = useUISettings();
+
+// CUSTOMIZAÇÃO_SYNAPSEOS: agentes não veem macros, prioridade/time nem as
+// informações técnicas da conversa (navegador/IP, vazias no WhatsApp).
+const { isAdmin } = useAdmin();
+
+// Card do lead começa aberto (chave ausente = aberto).
+const isLeadCardOpen = computed(
+  () => uiSettings.value.is_synapseos_lead_open !== false
+);
+const toggleLeadCard = () =>
+  updateUISettings({ is_synapseos_lead_open: !isLeadCardOpen.value });
 
 const dragging = ref(false);
 const conversationSidebarItems = ref([]);
@@ -157,8 +172,18 @@ onMounted(() => {
         @end="onDragEnd"
       >
         <template #item="{ element }">
+          <div v-if="element.name === 'synapseos_lead'">
+            <AccordionItem
+              :title="$t('SYNAPSEOS.CONVERSATION.LEAD_CARD.TITLE')"
+              :is-open="isLeadCardOpen"
+              compact
+              @toggle="toggleLeadCard"
+            >
+              <LeadCard :conversation-id="conversationId" :contact="contact" />
+            </AccordionItem>
+          </div>
           <div
-            v-if="element.name === 'conversation_actions'"
+            v-else-if="element.name === 'conversation_actions'"
             class="conversation--actions"
           >
             <AccordionItem
@@ -192,7 +217,7 @@ onMounted(() => {
               />
             </AccordionItem>
           </div>
-          <div v-else-if="element.name === 'conversation_info'">
+          <div v-else-if="element.name === 'conversation_info' && isAdmin">
             <AccordionItem
               :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CONVERSATION_INFO')"
               :is-open="isContactSidebarItemOpen('is_conv_details_open')"
@@ -246,7 +271,7 @@ onMounted(() => {
             </AccordionItem>
           </div>
           <woot-feature-toggle
-            v-else-if="element.name === 'macros'"
+            v-else-if="element.name === 'macros' && isAdmin"
             feature-key="macros"
           >
             <AccordionItem

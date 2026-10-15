@@ -1,7 +1,11 @@
 import { computed } from 'vue';
 import { useStore, useStoreGetters } from 'dashboard/composables/store';
 
+// CUSTOMIZAÇÃO_SYNAPSEOS: card do lead é o primeiro item do painel da conversa.
+const SYNAPSEOS_LEAD_ITEM = Object.freeze({ name: 'synapseos_lead' });
+
 export const DEFAULT_CONVERSATION_SIDEBAR_ITEMS_ORDER = Object.freeze([
+  SYNAPSEOS_LEAD_ITEM,
   { name: 'conversation_actions' },
   { name: 'macros' },
   { name: 'conversation_info' },
@@ -42,6 +46,10 @@ const useConversationSidebarItemsOrder = uiSettings => {
     }
     // Create a copy of itemsOrder to avoid mutating the original store object.
     const itemsOrderCopy = [...itemsOrder];
+    // CUSTOMIZAÇÃO_SYNAPSEOS: ordens já salvas também recebem o card do lead no topo.
+    if (!itemsOrderCopy.some(i => i.name === SYNAPSEOS_LEAD_ITEM.name)) {
+      itemsOrderCopy.unshift(SYNAPSEOS_LEAD_ITEM);
+    }
     // If the sidebar order doesn't have the new elements, then add them to the list.
     DEFAULT_CONVERSATION_SIDEBAR_ITEMS_ORDER.forEach(item => {
       if (!itemsOrderCopy.find(i => i.name === item.name)) {

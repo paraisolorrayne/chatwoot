@@ -14,7 +14,9 @@ const customAttributes = computed(() => props.contact?.custom_attributes || {});
 
 const ultimaRevisaoRaw = computed(() => customAttributes.value.ultima_revisao);
 const carroAtualRaw = computed(() => customAttributes.value.carro_atual);
-const propensaoTrocaRaw = computed(() => customAttributes.value.propensao_troca);
+const propensaoTrocaRaw = computed(
+  () => customAttributes.value.propensao_troca
+);
 
 const formatDate = value => {
   if (!value) return '';
@@ -43,7 +45,9 @@ const hasAnyValue = computed(
 </script>
 
 <template>
+  <!-- CUSTOMIZAÇÃO_SYNAPSEOS: sem dados do ERP o card não aparece (seção vazia é ruído). -->
   <section
+    v-if="hasAnyValue"
     class="flex flex-col gap-3 p-4 mx-2 mb-3 border rounded-lg bg-s-surface border-s-border"
   >
     <header class="flex items-center gap-2">
@@ -52,7 +56,7 @@ const hasAnyValue = computed(
         {{ $t('CONVERSATION_SIDEBAR.SYSTEM_LEGADO.TITLE') }}
       </h4>
     </header>
-    <div v-if="hasAnyValue" class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between gap-3">
         <span class="text-xs text-s-muted">
           {{ $t('CONVERSATION_SIDEBAR.SYSTEM_LEGADO.ULTIMA_REVISAO') }}
@@ -78,8 +82,5 @@ const hasAnyValue = computed(
         </span>
       </div>
     </div>
-    <p v-else class="m-0 text-xs text-s-muted">
-      {{ $t('CONVERSATION_SIDEBAR.SYSTEM_LEGADO.EMPTY') }}
-    </p>
   </section>
 </template>
