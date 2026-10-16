@@ -466,6 +466,12 @@ const menuItems = computed(() => {
                 icon: 'i-lucide-file-bar-chart',
                 to: accountScopedRoute('monthly_reports_index'),
               },
+              {
+                name: 'Settings Knowledge Base',
+                label: t('SIDEBAR.KNOWLEDGE_BASE'),
+                icon: 'i-lucide-book-open',
+                to: accountScopedRoute('knowledge_base_index'),
+              },
             ]
           : []),
         {

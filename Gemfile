@@ -48,6 +48,8 @@ gem 'gmail_xoauth'
 gem 'net-smtp',  '~> 0.3.4'
 # Prevent CSV injection
 gem 'csv-safe'
+# CUSTOMIZAÇÃO_SYNAPSEOS: lê a planilha (.xlsx) da base de conhecimento de veículos
+gem 'roo', '~> 2.10'
 
 ##-- for active storage --##
 gem 'aws-sdk-s3', require: false

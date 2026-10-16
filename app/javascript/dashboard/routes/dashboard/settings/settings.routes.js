@@ -28,6 +28,7 @@ import conversationWorkflow from './conversationWorkflow/conversationWorkflow.ro
 import captain from './captain/captain.routes';
 import whatsappConnection from './whatsappConnection/whatsappConnection.routes';
 import monthlyReports from './monthlyReports/monthlyReports.routes';
+import knowledgeBase from './knowledgeBase/knowledgeBase.routes';
 
 export default {
   routes: [
@@ -71,5 +72,6 @@ export default {
     ...captain.routes,
     ...whatsappConnection.routes,
     ...monthlyReports.routes,
+    ...knowledgeBase.routes,
   ],
 };

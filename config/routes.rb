@@ -77,6 +77,14 @@ Rails.application.routes.draw do
             resources :monthly_reports, only: [:index, :create] do
               member { get :download }
             end
+            # CUSTOMIZAÇÃO_SYNAPSEOS — base de conhecimento de veículos (consultada pelo agente de IA)
+            resources :vehicles, only: [:index, :show, :create, :update, :destroy] do
+              collection do
+                get :schema
+                get :search
+                post :import
+              end
+            end
             resources :pipeline_stages do
               collection do
                 post :reorder
