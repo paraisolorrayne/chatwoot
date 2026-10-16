@@ -32,6 +32,9 @@ module Synapseos
       },
 
       audi_sdr: {
+        # Template de cliente: só aparece (e só pode ser aplicado) em contas
+        # cujo slug agentic está aqui. Ver .visible_to?.
+        owner_slugs: %w[audi],
         name: 'Audi Center Uberlândia — Pipeline Comercial',
         description: 'Funil comercial completo Audi Uberlândia: do lead frio até a venda. Cobre jornada SDR (Elisa) + atendimento humano do consultor (visita, negociação, fechamento).',
         loss_reasons: [
@@ -127,8 +130,8 @@ module Synapseos
       }
     }.freeze
 
-    def self.list
-      TEMPLATES.map do |key, tmpl|
+    def self.list(account)
+      TEMPLATES.select { |_, tmpl| visible_to?(account, tmpl) }.map do |key, tmpl|
         {
           key: key,
           name: tmpl[:name],
@@ -139,8 +142,40 @@ module Synapseos
       end
     end
 
-    def self.find(key)
-      TEMPLATES[key.to_sym]
+    # Template de outro cliente se comporta como inexistente (nil), pra não
+    # vazar nem o nome.
+    def self.find(key, account)
+      tmpl = TEMPLATES[key.to_sym]
+      tmpl if tmpl && visible_to?(account, tmpl)
+    end
+
+    def self.visible_to?(account, tmpl)
+      return true if tmpl[:owner_slugs].blank?
+
+      tmpl[:owner_slugs].include?(account.custom_attributes&.dig(::Synapseos::ChatwootMirror::ACCOUNT_SLUG_KEY).to_s)
+    end
+
+    # Sugestão de de-para pra um estágio atual: mesmo slug, senão mesmo tipo
+    # (ganho→ganho, perdido→perdido...), senão o primeiro estágio do template.
+    def self.suggest_target(stage, target_stages)
+      target_stages.find { |t| t[:slug] == stage.slug } ||
+        target_stages.find { |t| t[:stage_type] == stage.stage_type } ||
+        target_stages.first
+    end
+
+    def self.preview(account, template_key)
+      tmpl = find(template_key, account)
+      raise ArgumentError, "Template '#{template_key}' not found" unless tmpl
+
+      stages = ::Synapseos::PipelineStage.where(account_id: account.id).ordered.to_a
+      counts = ::Synapseos::Lead.where(pipeline_stage_id: stages.map(&:id)).group(:pipeline_stage_id).count
+      {
+        target_stages: tmpl[:stages].map { |s| s.slice(:slug, :name, :color, :stage_type) },
+        current_stages: stages.map do |s|
+          { id: s.id, name: s.name, color: s.color, stage_type: s.stage_type,
+            leads_count: counts[s.id] || 0, suggested_slug: suggest_target(s, tmpl[:stages])[:slug] }
+        end
+      }
     end
 
     # Detecta qual template está aplicado na account comparando os slugs
@@ -151,10 +186,10 @@ module Synapseos
       return nil unless column_supported
 
       current_slugs = ::Synapseos::PipelineStage
-                        .where(account_id: account.id)
-                        .pluck(:slug)
-                        .compact
-                        .sort
+                      .where(account_id: account.id)
+                      .pluck(:slug)
+                      .compact
+                      .sort
       return nil if current_slugs.empty?
 
       TEMPLATES.find do |_, tmpl|
@@ -172,18 +207,42 @@ module Synapseos
       TEMPLATES.dig(applied, :loss_reasons) || []
     end
 
-    def self.apply(account, template_key)
-      tmpl = find(template_key)
+    # mapping: { "<id do estágio atual>" => "<slug do estágio no template>" }.
+    # Estágio sem mapping usa a sugestão, então nenhum lead fica sem estágio.
+    # Os leads mudam via update_all de propósito: trocar de template não é
+    # ganho/perda, então não pode disparar callbacks nem webhooks do n8n.
+    def self.apply(account, template_key, mapping = {})
+      tmpl = find(template_key, account)
       raise ArgumentError, "Template '#{template_key}' not found" unless tmpl
 
       ActiveRecord::Base.transaction do
-        ::Synapseos::PipelineStage.where(account_id: account.id).destroy_all
-        tmpl[:stages].each do |attrs|
-          payload = attrs.merge(account_id: account.id)
-          payload = payload.except(:slug) unless ::Synapseos::PipelineStage.column_names.include?('slug')
-          payload = payload.except(:description) unless ::Synapseos::PipelineStage.column_names.include?('description')
-          ::Synapseos::PipelineStage.create!(payload)
+        old_stages = ::Synapseos::PipelineStage.where(account_id: account.id).to_a
+        lead_ids_by_slug = lead_ids_by_target(old_stages, tmpl[:stages], mapping)
+        old_stages.each(&:destroy!)
+        new_ids = create_stages(account, tmpl[:stages])
+        lead_ids_by_slug.each do |slug, ids|
+          ::Synapseos::Lead.where(id: ids).update_all(pipeline_stage_id: new_ids[slug]) # rubocop:disable Rails/SkipsModelValidations
         end
+      end
+    end
+
+    def self.lead_ids_by_target(old_stages, target_stages, mapping)
+      target_slugs = target_stages.pluck(:slug)
+      old_stages.each_with_object(Hash.new { |h, k| h[k] = [] }) do |stage, acc|
+        slug = mapping[stage.id.to_s].presence || suggest_target(stage, target_stages)[:slug]
+        raise ArgumentError, "Invalid target stage '#{slug}'" unless target_slugs.include?(slug)
+
+        acc[slug].concat(::Synapseos::Lead.where(pipeline_stage_id: stage.id).pluck(:id))
+      end
+    end
+
+    def self.create_stages(account, stages)
+      columns = ::Synapseos::PipelineStage.column_names
+      stages.to_h do |attrs|
+        payload = attrs.merge(account_id: account.id)
+        payload = payload.except(:slug) unless columns.include?('slug')
+        payload = payload.except(:description) unless columns.include?('description')
+        [attrs[:slug], ::Synapseos::PipelineStage.create!(payload).id]
       end
     end
   end

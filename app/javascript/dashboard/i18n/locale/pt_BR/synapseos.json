@@ -1,20 +1,20 @@
 {
   "SYNAPSEOS": {
     "LIVE_AGENTS": {
-      "TITLE": "Agentes ao vivo",
-      "SUBTITLE": "Visão em tempo real da atividade e carga dos agentes",
+      "TITLE": "Equipe ao vivo",
+      "SUBTITLE": "Visão em tempo real da atividade e da carga da equipe",
       "SEARCH_PLACEHOLDER": "Buscar por nome ou e-mail…",
       "REFRESH_HINT": "Atualizando automaticamente a cada 15s",
-      "EMPTY_TITLE": "Nenhum agente pra mostrar ainda",
-      "EMPTY_DESCRIPTION": "Os agentes aparecem aqui quando ficam disponíveis ou começam a atender. Convide sua equipe em Configurações → Agentes.",
-      "COL_NAME": "Agente",
+      "EMPTY_TITLE": "Ninguém da equipe para mostrar ainda",
+      "EMPTY_DESCRIPTION": "As pessoas da equipe aparecem aqui quando ficam disponíveis ou começam a atender. Convide sua equipe em Configurações → Agentes.",
+      "COL_NAME": "Atendente",
       "COL_STATUS": "Status",
       "COL_OPEN": "Conversas abertas",
       "COL_TODAY": "Atendidas hoje",
       "COL_FIRST_RESPONSE": "Tempo médio de 1ª resposta (hoje)",
       "COL_ROLE": "Função",
       "SUMMARY": {
-        "TOTAL": "Total de agentes",
+        "TOTAL": "Total na equipe",
         "ONLINE": "Online",
         "BUSY": "Ocupado",
         "OFFLINE": "Offline",
@@ -31,8 +31,8 @@
         "COUNT": "{n} conversas abertas",
         "CLOSE": "Fechar",
         "LOADING": "Carregando conversas…",
-        "EMPTY": "Nenhuma conversa aberta atribuída a este agente.",
-        "HINT": "Selecione um agente para ver as conversas dele.",
+        "EMPTY": "Nenhuma conversa aberta atribuída a esta pessoa.",
+        "HINT": "Selecione alguém da equipe para ver as conversas.",
         "STATUS": {
           "OPEN": "Aberta",
           "RESOLVED": "Resolvida",
@@ -40,14 +40,14 @@
           "SNOOZED": "Adiada"
         }
       },
-      "SEARCH_LABEL": "Buscar agentes",
+      "SEARCH_LABEL": "Buscar na equipe",
       "ERROR": {
-        "TITLE": "Não foi possível carregar os agentes.",
+        "TITLE": "Não foi possível carregar a equipe.",
         "RETRY": "Tentar de novo"
       },
       "ROLE": {
         "ADMINISTRATOR": "Administrador",
-        "AGENT": "Agente"
+        "AGENT": "Atendente"
       }
     },
     "DASHBOARD": {
@@ -243,8 +243,8 @@
       "CREATE": "Criar",
       "TEMPLATES": "Templates",
       "TEMPLATE_HEADER": "Templates de pipeline",
-      "TEMPLATE_DESCRIPTION": "Escolha um template pré-configurado para o seu segmento. Atenção: isso substituirá todos os estágios atuais e desvinculará os leads existentes.",
-      "TEMPLATE_CONFIRM": "Todos os estágios atuais serão substituídos e os leads ficarão sem estágio.",
+      "TEMPLATE_DESCRIPTION": "Escolha um template pré-configurado para o seu segmento. Na próxima etapa você define para qual estágio novo vai cada coluna atual.",
+      "TEMPLATE_CONFIRM": "Os estágios atuais serão substituídos pelos do template. Escolha para onde vai cada coluna: nenhum lead fica sem estágio.",
       "TEMPLATE_STAGES": "{count} estágios",
       "STAGE_TYPES": {
         "INBOUND": "Inbound",
@@ -342,7 +342,14 @@
         "INDIGO": "Índigo",
         "VIOLET": "Violeta",
         "ORANGE": "Laranja"
-      }
+      },
+      "TEMPLATE_MAP_FROM": "Estágio atual",
+      "TEMPLATE_MAP_LEADS": "Leads",
+      "TEMPLATE_MAP_TO": "Vai para",
+      "TEMPLATE_MAP_SUMMARY": "{count} leads serão movidos. A troca de template não dispara as automações de ganho ou perda.",
+      "TEMPLATE_MAP_EMPTY": "Não há estágios atuais. O template será aplicado direto.",
+      "TEMPLATE_MAP_ERROR": "Não foi possível preparar a troca de template. Tente novamente.",
+      "TEMPLATE_APPLY_AND_MOVE": "Aplicar e mover leads"
     },
     "COMMON": {
       "UPDATED_AT": "Atualizado às {time}",
@@ -526,7 +533,7 @@
       "SEND": "Enviar chamado",
       "SENDING": "Enviando…",
       "DIRECT_SUPPORT": "Como funciona",
-      "DELIVERY_HINT": "Seu chamado chega à nossa equipe pelo WhatsApp selecionado. Você pode acompanhar o envio e abrir a conversa no histórico abaixo.",
+      "DELIVERY_HINT": "Seu chamado chega à nossa equipe. Você pode acompanhar o envio e abrir a conversa no histórico abaixo.",
       "DESTINATION": "WhatsApp do suporte",
       "HELP_TITLE": "Para agilizar o atendimento",
       "HELP_DESCRIPTION": "Informe a tela, o horário e a conversa em que o problema aconteceu. Isso ajuda nossa equipe a localizar a falha.",

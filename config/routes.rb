@@ -81,6 +81,7 @@ Rails.application.routes.draw do
               collection do
                 post :reorder
                 get :templates
+                get :template_preview
                 post :apply_template
                 get :loss_reasons
               end
