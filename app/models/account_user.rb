@@ -57,7 +57,14 @@ class AccountUser < ApplicationRecord
     perms = administrator? ? ['administrator'] : ['agent']
     perms << 'synapseos_dashboard_viewer' if synapseos_dashboard_viewer?
     perms << 'synapseos_platform' if synapseos_staff?
+    perms << 'synapseos_intelligence' if synapseos_intelligence?
     perms
+  end
+
+  # CUSTOMIZAÇÃO_SYNAPSEOS: Inteligência (data lake do painel) para quem vê o
+  # Dashboard executivo, nas contas que o painel atende.
+  def synapseos_intelligence?
+    (administrator? || synapseos_dashboard_viewer?) && Synapseos::PanelAnalytics.enabled_for?(account)
   end
 
   # CUSTOMIZAÇÃO_SYNAPSEOS: o atalho "Plataforma" abre o painel agentic, que tem

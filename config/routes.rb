@@ -89,6 +89,8 @@ Rails.application.routes.draw do
             resource :pipeline, only: [:show], controller: 'pipeline'
             get 'dashboard/summary', to: 'dashboard#summary'
             get 'dashboard/forecast', to: 'dashboard#forecast'
+            # CUSTOMIZAÇÃO_SYNAPSEOS — Inteligência (data lake do painel agentic)
+            get 'intelligence/:section', to: 'intelligence#show', as: :intelligence_section
             get 'agent_metrics', to: 'agent_metrics#index'
             get 'agent_metrics/live', to: 'agent_metrics#live'
             get 'agent_metrics/:agent_slug', to: 'agent_metrics#show'
