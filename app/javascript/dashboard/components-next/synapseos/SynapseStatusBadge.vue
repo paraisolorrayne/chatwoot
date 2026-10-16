@@ -2,6 +2,7 @@
 // CUSTOMIZAÇÃO_SYNAPSEOS — StatusBadge do design system Fykos.
 // Normaliza o identificador (acentos, espaços, separadores), aceita rótulo
 // próprio e mostra "—" quando o estado está ausente. Estado desconhecido é neutro.
+// `subtle` deixa a pílula neutra e a cor só no ponto (listas densas).
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { resolveStatus } from 'dashboard/helper/synapseos/statusBadge';
@@ -12,6 +13,7 @@ const props = defineProps({
   stageType: { type: String, default: '' },
   size: { type: String, default: 'md' }, // sm | md
   dot: { type: Boolean, default: true },
+  subtle: { type: Boolean, default: false },
 });
 
 const { t } = useI18n();
@@ -43,6 +45,12 @@ const resolved = computed(() =>
 
 const variant = computed(() => resolved.value?.variant || 'neutral');
 
+const boxClass = computed(() =>
+  props.subtle
+    ? VARIANT_CLASSES.neutral.box
+    : VARIANT_CLASSES[variant.value].box
+);
+
 const text = computed(() => {
   if (props.label) return props.label;
   if (!resolved.value) return '—';
@@ -55,7 +63,7 @@ const text = computed(() => {
 <template>
   <span
     class="inline-flex items-center rounded-full font-medium whitespace-nowrap"
-    :class="[VARIANT_CLASSES[variant].box, SIZE_CLASSES[size]]"
+    :class="[boxClass, SIZE_CLASSES[size]]"
   >
     <span
       v-if="dot && resolved"
