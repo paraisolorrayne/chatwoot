@@ -559,6 +559,120 @@
       "LOAD_MORE": "Carregar mais conversas",
       "LOAD_ERROR": "Não foi possível carregar as conversas. Tente novamente.",
       "LOADED": "{count} conversas carregadas"
+    },
+    "INTELLIGENCE": {
+      "TITLE": "Inteligência",
+      "SUBTITLE": "O que os clientes dizem, pedem e planejam comprar, a partir das conversas analisadas pela IA. Os números são atualizados a cada 5 minutos.",
+      "ERROR": "Não foi possível carregar esta seção agora.",
+      "RETRY": "Tentar de novo",
+      "EMPTY": "Ainda não há dados suficientes.",
+      "UNKNOWN": "Não identificado",
+      "FORECAST": {
+        "TITLE": "Receita futura",
+        "DESCRIPTION": "Clientes que disseram que vão comprar mais adiante, com o preço de referência do modelo citado.",
+        "REVENUE": "Receita prevista",
+        "LEADS": "Clientes no radar",
+        "NO_MODEL": "Sem modelo definido",
+        "BY_HORIZON": "Por prazo de compra",
+        "BY_MODEL": "Por modelo"
+      },
+      "DEMAND": {
+        "TITLE": "Demanda por modelo",
+        "DESCRIPTION": "Modelos citados nas conversas. Potencial pelo preço de referência: {value}."
+      },
+      "STAGE": {
+        "TITLE": "Momento de compra",
+        "DESCRIPTION": "Em que etapa da decisão cada cliente está, segundo a análise das conversas."
+      },
+      "VOICE": {
+        "TITLE": "Voz do cliente",
+        "DESCRIPTION": "Objeções, intenções e uso pretendido identificados em {total} conversas analisadas.",
+        "SENTIMENT": "Sentimento",
+        "OBJECOES": "Objeções",
+        "INTENCOES": "Intenções",
+        "USO": "Uso pretendido"
+      },
+      "ACQUISITION": {
+        "TITLE": "Aquisição",
+        "DESCRIPTION": "Base de contatos desde o início e envios dos últimos 30 dias.",
+        "FUNNEL": "Funil da base",
+        "SENDS": "Envios",
+        "BY_SOURCE": "Por origem",
+        "COL_SOURCE": "Origem",
+        "COL_TOTAL": "Contatos",
+        "COL_REPLIED": "Responderam",
+        "COL_RATE": "Taxa de resposta",
+        "FUNNEL_STEPS": {
+          "total": "Contatos na base",
+          "contatados": "Contatados",
+          "responderam": "Responderam",
+          "com_ia": "Conversaram com a IA",
+          "bloqueados": "Bloquearam"
+        },
+        "SENDS_ITEMS": {
+          "disparos_periodo": "Disparos (30 dias)",
+          "followups_periodo": "Follow-ups (30 dias)",
+          "disparos_hoje": "Disparos hoje",
+          "followups_hoje": "Follow-ups hoje",
+          "backlog": "Na fila para disparo"
+        }
+      },
+      "LABELS": {
+        "OBJECOES": {
+          "preco": "Preço",
+          "financiamento": "Financiamento",
+          "timing": "Momento",
+          "concorrencia": "Concorrência",
+          "indisponibilidade": "Indisponibilidade",
+          "confianca": "Confiança",
+          "sem_objecao": "Sem objeção",
+          "outro": "Outro"
+        },
+        "INTENCOES": {
+          "compra_imediata": "Compra imediata",
+          "troca": "Troca",
+          "pesquisa": "Pesquisa",
+          "test_drive": "Test drive",
+          "financiamento": "Financiamento",
+          "informacao": "Informação",
+          "pos_venda": "Pós-venda",
+          "outro": "Outro"
+        },
+        "SENTIMENTO": {
+          "positivo": "Positivo",
+          "neutro": "Neutro",
+          "negativo": "Negativo"
+        },
+        "USO": {
+          "familia": "Família",
+          "viagem": "Viagem",
+          "trabalho": "Trabalho",
+          "esportividade": "Esportividade",
+          "dia_a_dia": "Dia a dia",
+          "status": "Status",
+          "outro": "Outro",
+          "desconhecido": "Não informado"
+        },
+        "HORIZONTE": {
+          "imediato": "Imediato",
+          "1_3m": "1 a 3 meses",
+          "3_6m": "3 a 6 meses",
+          "6_12m": "6 a 12 meses",
+          "mais_12m": "Mais de 12 meses",
+          "sem_horizonte": "Sem prazo definido"
+        },
+        "ESTAGIO": {
+          "descoberta": "Descoberta",
+          "consideracao": "Consideração",
+          "decisao": "Decisão",
+          "pos_venda": "Pós-venda"
+        }
+      }
+    },
+    "PLATFORM": {
+      "TITLE": "Plataforma",
+      "STAFF_ONLY": "Visível só para a equipe Dexi",
+      "OPEN_NEW_TAB": "Abrir em nova aba"
     }
   }
 }

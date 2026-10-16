@@ -559,6 +559,120 @@
       "LOAD_MORE": "Load more conversations",
       "LOAD_ERROR": "Could not load conversations. Try again.",
       "LOADED": "{count} conversations loaded"
+    },
+    "INTELLIGENCE": {
+      "TITLE": "Intelligence",
+      "SUBTITLE": "What customers say, ask for and plan to buy, from the conversations analyzed by the AI. Numbers refresh every 5 minutes.",
+      "ERROR": "Couldn't load this section right now.",
+      "RETRY": "Try again",
+      "EMPTY": "Not enough data yet.",
+      "UNKNOWN": "Not identified",
+      "FORECAST": {
+        "TITLE": "Future revenue",
+        "DESCRIPTION": "Customers who said they will buy later, with the reference price of the model they mentioned.",
+        "REVENUE": "Expected revenue",
+        "LEADS": "Customers on the radar",
+        "NO_MODEL": "No model defined",
+        "BY_HORIZON": "By purchase timeframe",
+        "BY_MODEL": "By model"
+      },
+      "DEMAND": {
+        "TITLE": "Demand by model",
+        "DESCRIPTION": "Models mentioned in conversations. Potential at reference price: {value}."
+      },
+      "STAGE": {
+        "TITLE": "Buying stage",
+        "DESCRIPTION": "Where each customer is in the decision, according to the conversation analysis."
+      },
+      "VOICE": {
+        "TITLE": "Voice of the customer",
+        "DESCRIPTION": "Objections, intents and intended use found in {total} analyzed conversations.",
+        "SENTIMENT": "Sentiment",
+        "OBJECOES": "Objections",
+        "INTENCOES": "Intents",
+        "USO": "Intended use"
+      },
+      "ACQUISITION": {
+        "TITLE": "Acquisition",
+        "DESCRIPTION": "Contact base since the start and sends from the last 30 days.",
+        "FUNNEL": "Base funnel",
+        "SENDS": "Sends",
+        "BY_SOURCE": "By source",
+        "COL_SOURCE": "Source",
+        "COL_TOTAL": "Contacts",
+        "COL_REPLIED": "Replied",
+        "COL_RATE": "Reply rate",
+        "FUNNEL_STEPS": {
+          "total": "Contacts in base",
+          "contatados": "Contacted",
+          "responderam": "Replied",
+          "com_ia": "Talked to the AI",
+          "bloqueados": "Blocked"
+        },
+        "SENDS_ITEMS": {
+          "disparos_periodo": "Outreach (30 days)",
+          "followups_periodo": "Follow-ups (30 days)",
+          "disparos_hoje": "Outreach today",
+          "followups_hoje": "Follow-ups today",
+          "backlog": "Queued for outreach"
+        }
+      },
+      "LABELS": {
+        "OBJECOES": {
+          "preco": "Price",
+          "financiamento": "Financing",
+          "timing": "Timing",
+          "concorrencia": "Competition",
+          "indisponibilidade": "Unavailability",
+          "confianca": "Trust",
+          "sem_objecao": "No objection",
+          "outro": "Other"
+        },
+        "INTENCOES": {
+          "compra_imediata": "Immediate purchase",
+          "troca": "Trade-in",
+          "pesquisa": "Research",
+          "test_drive": "Test drive",
+          "financiamento": "Financing",
+          "informacao": "Information",
+          "pos_venda": "After-sales",
+          "outro": "Other"
+        },
+        "SENTIMENTO": {
+          "positivo": "Positive",
+          "neutro": "Neutral",
+          "negativo": "Negative"
+        },
+        "USO": {
+          "familia": "Family",
+          "viagem": "Travel",
+          "trabalho": "Work",
+          "esportividade": "Sportiness",
+          "dia_a_dia": "Daily use",
+          "status": "Status",
+          "outro": "Other",
+          "desconhecido": "Not informed"
+        },
+        "HORIZONTE": {
+          "imediato": "Immediate",
+          "1_3m": "1 to 3 months",
+          "3_6m": "3 to 6 months",
+          "6_12m": "6 to 12 months",
+          "mais_12m": "Over 12 months",
+          "sem_horizonte": "No timeframe"
+        },
+        "ESTAGIO": {
+          "descoberta": "Discovery",
+          "consideracao": "Consideration",
+          "decisao": "Decision",
+          "pos_venda": "After-sales"
+        }
+      }
+    },
+    "PLATFORM": {
+      "TITLE": "Platform",
+      "STAFF_ONLY": "Visible to the Dexi team only",
+      "OPEN_NEW_TAB": "Open in a new tab"
     }
   }
 }
