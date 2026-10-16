@@ -56,7 +56,25 @@ class AccountUser < ApplicationRecord
   def permissions
     perms = administrator? ? ['administrator'] : ['agent']
     perms << 'synapseos_dashboard_viewer' if synapseos_dashboard_viewer?
+    perms << 'synapseos_platform' if synapseos_staff?
+    perms << 'synapseos_intelligence' if synapseos_intelligence?
     perms
+  end
+
+  # CUSTOMIZAÇÃO_SYNAPSEOS: Inteligência (data lake do painel) para quem vê o
+  # Dashboard executivo, nas contas que o painel atende.
+  def synapseos_intelligence?
+    (administrator? || synapseos_dashboard_viewer?) && Synapseos::PanelAnalytics.enabled_for?(account)
+  end
+
+  # CUSTOMIZAÇÃO_SYNAPSEOS: o atalho "Plataforma" abre o painel agentic, que tem
+  # deploy e credenciais de TODOS os clientes. Só a equipe Dexi vê: admin com
+  # e-mail num domínio de ENV SYNAPSEOS_STAFF_EMAIL_DOMAINS (vírgula).
+  def synapseos_staff?
+    return false unless administrator?
+
+    domains = ENV.fetch('SYNAPSEOS_STAFF_EMAIL_DOMAINS', 'dexidigital.com.br').split(',').map { |d| d.strip.downcase }.reject(&:empty?)
+    domains.include?(user&.email.to_s.downcase.split('@').last)
   end
 
   # CUSTOMIZAÇÃO_SYNAPSEOS: libera o Dashboard de KPIs pra e-mails específicos

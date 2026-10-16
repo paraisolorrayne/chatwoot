@@ -518,6 +518,16 @@ const loadingTemplates = ref(false);
 const applyingTemplate = ref(false);
 const templateDialog = ref(null);
 const templateToApply = ref(null);
+// De-para da troca de template: { [id do estágio atual]: slug no template }.
+const templatePreview = ref(null);
+const templateMapping = ref({});
+const templatePreviewError = ref(null);
+const leadsToMove = computed(() =>
+  (templatePreview.value?.current_stages || []).reduce(
+    (sum, s) => sum + s.leads_count,
+    0
+  )
+);
 
 const openTemplates = async () => {
   showTemplateDialog.value = true;
@@ -541,10 +551,24 @@ const openTemplates = async () => {
   }
 };
 
-const askApplyTemplate = tmpl => {
+const askApplyTemplate = async tmpl => {
   templateToApply.value = tmpl;
+  templatePreview.value = null;
+  templatePreviewError.value = null;
   showTemplateDialog.value = false;
   templateDialog.value.open();
+  try {
+    const { data } = await axios.get(
+      `${apiBase.value}/pipeline_stages/template_preview`,
+      { params: { template_key: tmpl.key } }
+    );
+    templatePreview.value = data;
+    templateMapping.value = Object.fromEntries(
+      data.current_stages.map(s => [s.id, s.suggested_slug])
+    );
+  } catch {
+    templatePreviewError.value = t('SYNAPSEOS.PIPELINE.TEMPLATE_MAP_ERROR');
+  }
 };
 
 const applyTemplate = async () => {
@@ -552,6 +576,7 @@ const applyTemplate = async () => {
   try {
     await axios.post(`${apiBase.value}/pipeline_stages/apply_template`, {
       template_key: templateToApply.value.key,
+      mapping: templateMapping.value,
     });
     templateDialog.value.close();
     await fetchPipeline();
@@ -864,19 +889,86 @@ onBeforeUnmount(() => {
 
     <Dialog
       ref="templateDialog"
-      type="alert"
-      width="md"
+      width="xl"
       :title="
         t('SYNAPSEOS.PIPELINE.TEMPLATE_CONFIRM_TITLE', {
           name: templateToApply?.name,
         })
       "
       :description="t('SYNAPSEOS.PIPELINE.TEMPLATE_CONFIRM')"
-      :confirm-button-label="t('SYNAPSEOS.PIPELINE.APPLY')"
+      :confirm-button-label="t('SYNAPSEOS.PIPELINE.TEMPLATE_APPLY_AND_MOVE')"
       :cancel-button-label="t('SYNAPSEOS.PIPELINE.CANCEL')"
       :is-loading="applyingTemplate"
+      :disable-confirm-button="!templatePreview"
       @confirm="applyTemplate"
-    />
+    >
+      <p v-if="templatePreviewError" class="text-sm text-s-error-text">
+        {{ templatePreviewError }}
+      </p>
+      <SynapseSkeleton v-else-if="!templatePreview" class="h-32 w-full" />
+      <p
+        v-else-if="!templatePreview.current_stages.length"
+        class="text-sm text-s-secondary"
+      >
+        {{ t('SYNAPSEOS.PIPELINE.TEMPLATE_MAP_EMPTY') }}
+      </p>
+      <div v-else class="flex flex-col gap-3">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-xs text-s-muted">
+              <th class="pb-2 font-medium">
+                {{ t('SYNAPSEOS.PIPELINE.TEMPLATE_MAP_FROM') }}
+              </th>
+              <th class="pb-2 font-medium text-right">
+                {{ t('SYNAPSEOS.PIPELINE.TEMPLATE_MAP_LEADS') }}
+              </th>
+              <th class="pb-2 ps-4 font-medium">
+                {{ t('SYNAPSEOS.PIPELINE.TEMPLATE_MAP_TO') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="stage in templatePreview.current_stages"
+              :key="stage.id"
+              class="border-t border-s-border"
+            >
+              <td class="py-2">
+                <span class="inline-flex items-center gap-2 text-s-primary">
+                  <span
+                    class="size-2 rounded-full flex-shrink-0"
+                    :style="{ backgroundColor: stage.color }"
+                  />
+                  {{ stage.name }}
+                </span>
+              </td>
+              <td
+                class="py-2 text-right font-mono tabular-nums text-s-secondary"
+              >
+                {{ stage.leads_count }}
+              </td>
+              <td class="py-2 ps-4">
+                <Select
+                  v-model="templateMapping[stage.id]"
+                  :options="templatePreview.target_stages"
+                  option-label="name"
+                  option-value="slug"
+                  :aria-label="`${t('SYNAPSEOS.PIPELINE.TEMPLATE_MAP_TO')}: ${stage.name}`"
+                  class="w-full"
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-s-secondary">
+          {{
+            t('SYNAPSEOS.PIPELINE.TEMPLATE_MAP_SUMMARY', {
+              count: leadsToMove,
+            })
+          }}
+        </p>
+      </div>
+    </Dialog>
 
     <!-- New Stage Dialog -->
     <SynapseDialog

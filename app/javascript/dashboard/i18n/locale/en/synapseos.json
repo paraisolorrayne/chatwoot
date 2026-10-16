@@ -1,20 +1,20 @@
 {
   "SYNAPSEOS": {
     "LIVE_AGENTS": {
-      "TITLE": "Live Agents",
-      "SUBTITLE": "Real-time view of agent activity and workload",
+      "TITLE": "Live Team",
+      "SUBTITLE": "Real-time view of team activity and workload",
       "SEARCH_PLACEHOLDER": "Search by name or email…",
       "REFRESH_HINT": "Auto-refreshing every 15s",
-      "EMPTY_TITLE": "No agents to show yet",
-      "EMPTY_DESCRIPTION": "Agents appear here as soon as they come online or handle conversations. Invite teammates from Settings → Agents.",
-      "COL_NAME": "Agent",
+      "EMPTY_TITLE": "No teammates to show yet",
+      "EMPTY_DESCRIPTION": "Teammates appear here as soon as they come online or handle conversations. Invite teammates from Settings → Agents.",
+      "COL_NAME": "Teammate",
       "COL_STATUS": "Status",
       "COL_OPEN": "Open conversations",
       "COL_TODAY": "Handled today",
       "COL_FIRST_RESPONSE": "Avg. first response (today)",
       "COL_ROLE": "Role",
       "SUMMARY": {
-        "TOTAL": "Total agents",
+        "TOTAL": "Team size",
         "ONLINE": "Online",
         "BUSY": "Busy",
         "OFFLINE": "Offline",
@@ -31,8 +31,8 @@
         "COUNT": "{n} open conversations",
         "CLOSE": "Close",
         "LOADING": "Loading conversations…",
-        "EMPTY": "No open conversations assigned to this agent.",
-        "HINT": "Select an agent to see their conversations.",
+        "EMPTY": "No open conversations assigned to this teammate.",
+        "HINT": "Select a teammate to see their conversations.",
         "STATUS": {
           "OPEN": "Open",
           "RESOLVED": "Resolved",
@@ -40,9 +40,9 @@
           "SNOOZED": "Snoozed"
         }
       },
-      "SEARCH_LABEL": "Search agents",
+      "SEARCH_LABEL": "Search team",
       "ERROR": {
-        "TITLE": "Couldn't load the agents.",
+        "TITLE": "Couldn't load the team.",
         "RETRY": "Try again"
       },
       "ROLE": {
@@ -243,8 +243,8 @@
       "CREATE": "Create",
       "TEMPLATES": "Templates",
       "TEMPLATE_HEADER": "Pipeline templates",
-      "TEMPLATE_DESCRIPTION": "Choose a pre-configured pipeline template for your segment. Warning: this will replace all current stages and unassign existing leads.",
-      "TEMPLATE_CONFIRM": "All current stages will be replaced and leads will have no stage.",
+      "TEMPLATE_DESCRIPTION": "Pick a pre-configured template for your segment. In the next step you choose which new stage each current column moves to.",
+      "TEMPLATE_CONFIRM": "Current stages will be replaced by the template ones. Choose where each column goes: no lead is left without a stage.",
       "TEMPLATE_STAGES": "{count} stages",
       "TEMPLATE_FETCH_ERROR": "Could not load templates from the server. Please try again.",
       "TEMPLATE_EMPTY": "No templates available right now.",
@@ -342,7 +342,14 @@
         "INDIGO": "Indigo",
         "VIOLET": "Violet",
         "ORANGE": "Orange"
-      }
+      },
+      "TEMPLATE_MAP_FROM": "Current stage",
+      "TEMPLATE_MAP_LEADS": "Leads",
+      "TEMPLATE_MAP_TO": "Moves to",
+      "TEMPLATE_MAP_SUMMARY": "{count} leads will be moved. Switching templates does not trigger won or lost automations.",
+      "TEMPLATE_MAP_EMPTY": "There are no current stages. The template will be applied directly.",
+      "TEMPLATE_MAP_ERROR": "Couldn't prepare the template switch. Try again.",
+      "TEMPLATE_APPLY_AND_MOVE": "Apply and move leads"
     },
     "COMMON": {
       "UPDATED_AT": "Updated at {time}",
@@ -526,7 +533,7 @@
       "SEND": "Send support request",
       "SENDING": "Sending…",
       "DIRECT_SUPPORT": "Direct support on WhatsApp",
-      "DELIVERY_HINT": "Your request is sent through the selected account channel. Our team receives your message with the name of the person requesting help.",
+      "DELIVERY_HINT": "Our team receives your request with the name of the person requesting help. You can track it and open the conversation in the history below.",
       "DESTINATION": "Support number",
       "HELP_TITLE": "Help us investigate",
       "HELP_DESCRIPTION": "Include the time of the issue and the affected conversation. Never include passwords or access tokens.",
@@ -689,6 +696,120 @@
         "cores": "Available colors",
         "imagem_url": "Main image (URL)"
       }
+    },
+    "INTELLIGENCE": {
+      "TITLE": "Intelligence",
+      "SUBTITLE": "What customers say, ask for and plan to buy, from the conversations analyzed by the AI. Numbers refresh every 5 minutes.",
+      "ERROR": "Couldn't load this section right now.",
+      "RETRY": "Try again",
+      "EMPTY": "Not enough data yet.",
+      "UNKNOWN": "Not identified",
+      "FORECAST": {
+        "TITLE": "Future revenue",
+        "DESCRIPTION": "Customers who said they will buy later, with the reference price of the model they mentioned.",
+        "REVENUE": "Expected revenue",
+        "LEADS": "Customers on the radar",
+        "NO_MODEL": "No model defined",
+        "BY_HORIZON": "By purchase timeframe",
+        "BY_MODEL": "By model"
+      },
+      "DEMAND": {
+        "TITLE": "Demand by model",
+        "DESCRIPTION": "Models mentioned in conversations. Potential at reference price: {value}."
+      },
+      "STAGE": {
+        "TITLE": "Buying stage",
+        "DESCRIPTION": "Where each customer is in the decision, according to the conversation analysis."
+      },
+      "VOICE": {
+        "TITLE": "Voice of the customer",
+        "DESCRIPTION": "Objections, intents and intended use found in {total} analyzed conversations.",
+        "SENTIMENT": "Sentiment",
+        "OBJECOES": "Objections",
+        "INTENCOES": "Intents",
+        "USO": "Intended use"
+      },
+      "ACQUISITION": {
+        "TITLE": "Acquisition",
+        "DESCRIPTION": "Contact base since the start and sends from the last 30 days.",
+        "FUNNEL": "Base funnel",
+        "SENDS": "Sends",
+        "BY_SOURCE": "By source",
+        "COL_SOURCE": "Source",
+        "COL_TOTAL": "Contacts",
+        "COL_REPLIED": "Replied",
+        "COL_RATE": "Reply rate",
+        "FUNNEL_STEPS": {
+          "total": "Contacts in base",
+          "contatados": "Contacted",
+          "responderam": "Replied",
+          "com_ia": "Talked to the AI",
+          "bloqueados": "Blocked"
+        },
+        "SENDS_ITEMS": {
+          "disparos_periodo": "Outreach (30 days)",
+          "followups_periodo": "Follow-ups (30 days)",
+          "disparos_hoje": "Outreach today",
+          "followups_hoje": "Follow-ups today",
+          "backlog": "Queued for outreach"
+        }
+      },
+      "LABELS": {
+        "OBJECOES": {
+          "preco": "Price",
+          "financiamento": "Financing",
+          "timing": "Timing",
+          "concorrencia": "Competition",
+          "indisponibilidade": "Unavailability",
+          "confianca": "Trust",
+          "sem_objecao": "No objection",
+          "outro": "Other"
+        },
+        "INTENCOES": {
+          "compra_imediata": "Immediate purchase",
+          "troca": "Trade-in",
+          "pesquisa": "Research",
+          "test_drive": "Test drive",
+          "financiamento": "Financing",
+          "informacao": "Information",
+          "pos_venda": "After-sales",
+          "outro": "Other"
+        },
+        "SENTIMENTO": {
+          "positivo": "Positive",
+          "neutro": "Neutral",
+          "negativo": "Negative"
+        },
+        "USO": {
+          "familia": "Family",
+          "viagem": "Travel",
+          "trabalho": "Work",
+          "esportividade": "Sportiness",
+          "dia_a_dia": "Daily use",
+          "status": "Status",
+          "outro": "Other",
+          "desconhecido": "Not informed"
+        },
+        "HORIZONTE": {
+          "imediato": "Immediate",
+          "1_3m": "1 to 3 months",
+          "3_6m": "3 to 6 months",
+          "6_12m": "6 to 12 months",
+          "mais_12m": "Over 12 months",
+          "sem_horizonte": "No timeframe"
+        },
+        "ESTAGIO": {
+          "descoberta": "Discovery",
+          "consideracao": "Consideration",
+          "decisao": "Decision",
+          "pos_venda": "After-sales"
+        }
+      }
+    },
+    "PLATFORM": {
+      "TITLE": "Platform",
+      "STAFF_ONLY": "Visible to the Dexi team only",
+      "OPEN_NEW_TAB": "Open in a new tab"
     }
   }
 }

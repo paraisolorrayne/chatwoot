@@ -7,6 +7,8 @@ import { useMapGetter } from 'dashboard/composables/store';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import { useAdmin } from 'dashboard/composables/useAdmin';
+import { getUserPermissions } from 'dashboard/helper/permissionsHelper';
+import { useRouter } from 'vue-router';
 import { useSidebarKeyboardShortcuts } from './useSidebarKeyboardShortcuts';
 import { vOnClickOutside } from '@vueuse/components';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
@@ -49,18 +51,20 @@ const { t } = useI18n();
 // administradores. Agents não veem — esses são setup técnico de operação.
 const { isAdmin } = useAdmin();
 
-// CUSTOMIZAÇÃO_SYNAPSEOS: atalho admin pro painel agentic (a "plataforma"),
-// reaproveitando o login do Chatwoot — passa o access_token do usuário no
-// fragmento (#cwsso=), que o painel troca por uma sessão (SSO). Só admin.
+// CUSTOMIZAÇÃO_SYNAPSEOS: atalho pro painel agentic (a "plataforma"), aberto
+// embutido no chat (PlatformPage.vue) com o login do Chatwoot. O painel tem
+// deploy e credenciais de todos os clientes: só a equipe Dexi vê
+// (permissão synapseos_platform, ver AccountUser#synapseos_staff?).
+const router = useRouter();
 const currentUser = useMapGetter('getCurrentUser');
-const SYNAPSEOS_PANEL_URL = 'https://painel.dexidigital.com.br';
-const openPlatform = () => {
-  const token = currentUser.value?.access_token;
-  const url = token
-    ? `${SYNAPSEOS_PANEL_URL}/#cwsso=${encodeURIComponent(token)}`
-    : SYNAPSEOS_PANEL_URL;
-  window.open(url, '_blank', 'noopener,noreferrer');
-};
+const accountId = useMapGetter('getCurrentAccountId');
+const isPlatformUser = computed(() =>
+  getUserPermissions(currentUser.value, accountId.value).includes(
+    'synapseos_platform'
+  )
+);
+const openPlatform = () =>
+  router.push(accountScopedRoute('synapseos_platform'));
 
 const isACustomBrandedInstance = useMapGetter(
   'globalConfig/isACustomBrandedInstance'
@@ -70,7 +74,6 @@ const isRTL = useMapGetter('accounts/isRTL');
 const { width: windowWidth } = useWindowSize();
 const isMobile = computed(() => windowWidth.value < 768);
 
-const accountId = useMapGetter('getCurrentAccountId');
 const isFeatureEnabledonAccount = useMapGetter(
   'accounts/isFeatureEnabledonAccount'
 );
@@ -255,6 +258,13 @@ const menuItems = computed(() => {
       icon: 'i-lucide-layout-dashboard',
       to: accountScopedRoute('synapseos_dashboard'),
       activeOn: ['synapseos_dashboard'],
+    },
+    {
+      name: 'SynapseOS Intelligence',
+      label: t('SIDEBAR.SYNAPSEOS_INTELLIGENCE'),
+      icon: 'i-lucide-sparkles',
+      to: accountScopedRoute('synapseos_intelligence'),
+      activeOn: ['synapseos_intelligence'],
     },
     {
       name: 'SynapseOS Live Agents',
@@ -644,7 +654,7 @@ const menuItems = computed(() => {
         "
       />
       <button
-        v-if="isAdmin"
+        v-if="isPlatformUser"
         type="button"
         :title="t('SIDEBAR.SYNAPSEOS_PLATFORM')"
         class="flex gap-2 items-center px-3 h-9 rounded-lg border border-s-border bg-s-subtle text-s-on-dark-muted hover:bg-s-nav-hover hover:text-s-on-dark transition-colors"
@@ -662,10 +672,6 @@ const menuItems = computed(() => {
         >
           {{ t('SIDEBAR.SYNAPSEOS_PLATFORM') }}
         </span>
-        <span
-          v-if="!isEffectivelyCollapsed"
-          class="flex-shrink-0 i-lucide-external-link size-3.5 opacity-60"
-        />
       </button>
       <div
         class="px-2 py-2 flex-shrink-0 flex w-full z-50 gap-2 items-center border-t border-s-border"

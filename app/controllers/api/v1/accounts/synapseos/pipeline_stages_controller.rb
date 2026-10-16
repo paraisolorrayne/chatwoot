@@ -1,5 +1,8 @@
 class Api::V1::Accounts::Synapseos::PipelineStagesController < Api::V1::Accounts::BaseController
   before_action :check_authorization
+  # Ler estágios fica aberto (o n8n lê com token de usuário); mudar a
+  # estrutura do pipeline é só pra administrador.
+  before_action :check_admin_authorization, except: [:index, :show, :loss_reasons]
   before_action :ensure_defaults
   before_action :fetch_stage, only: [:show, :update, :destroy]
 
@@ -25,7 +28,15 @@ class Api::V1::Accounts::Synapseos::PipelineStagesController < Api::V1::Accounts
   end
 
   def templates
-    render json: ::Synapseos::PipelineTemplates.list
+    render json: ::Synapseos::PipelineTemplates.list(Current.account)
+  end
+
+  # De-para da troca de template: estágios atuais (com qtd. de leads e a
+  # sugestão de destino) x estágios do template.
+  def template_preview
+    render json: ::Synapseos::PipelineTemplates.preview(Current.account, params.require(:template_key))
+  rescue ArgumentError => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   # Retorna loss_reasons do template aplicado nessa account. Usado pelo
@@ -40,9 +51,9 @@ class Api::V1::Accounts::Synapseos::PipelineStagesController < Api::V1::Accounts
 
   def apply_template
     key = params[:template_key].presence
-    raise ArgumentError, "template_key is required" if key.nil?
+    raise ArgumentError, 'template_key is required' if key.nil?
 
-    ::Synapseos::PipelineTemplates.apply(Current.account, key)
+    ::Synapseos::PipelineTemplates.apply(Current.account, key, mapping_params)
     @stages = scope.ordered
     render :index
   rescue ArgumentError => e
@@ -72,6 +83,10 @@ class Api::V1::Accounts::Synapseos::PipelineStagesController < Api::V1::Accounts
     @stage = scope.find(params[:id])
   end
 
+  def mapping_params
+    params.fetch(:mapping, {}).permit(*scope.pluck(:id).map(&:to_s)).to_h
+  end
+
   def stage_params
     params.require(:pipeline_stage).permit(:name, :color, :position, :stage_type, :description)
   end
@@ -82,5 +97,9 @@ class Api::V1::Accounts::Synapseos::PipelineStagesController < Api::V1::Accounts
 
   def check_authorization
     authorize(User, :index?)
+  end
+
+  def check_admin_authorization
+    render_unauthorized('Acesso restrito a administradores') unless Current.account_user&.administrator?
   end
 end

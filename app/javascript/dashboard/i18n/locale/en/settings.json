@@ -302,7 +302,7 @@
     "INBOX_VIEW": "Inbox View",
     "SYNAPSEOS_DASHBOARD": "Executive Dashboard",
     "SYNAPSEOS_PIPELINE": "Pipeline",
-    "SYNAPSEOS_LIVE_AGENTS": "Live Agents",
+    "SYNAPSEOS_LIVE_AGENTS": "Live Team",
     "SYNAPSEOS_LIVE_DASHBOARD": "Realtime",
     "SYNAPSEOS_AGENT_METRICS": "Agent Metrics",
     "SYNAPSEOS_PLATFORM": "Platform",
@@ -392,7 +392,8 @@
     "SECURITY": "Security",
     "CAPTAIN_AI": "Captain",
     "CONVERSATION_WORKFLOW": "Conversation Workflow",
-    "KNOWLEDGE_BASE": "Knowledge base"
+    "KNOWLEDGE_BASE": "Knowledge base",
+    "SYNAPSEOS_INTELLIGENCE": "Intelligence"
   },
   "CAPTAIN_SETTINGS": {
     "TITLE": "Captain Settings",

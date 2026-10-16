@@ -23,6 +23,14 @@ export const routes = [
     meta: { permissions: ['administrator', 'synapseos_dashboard_viewer'] },
   },
   {
+    // Data lake do painel agentic; synapseos_intelligence = quem vê o Dashboard,
+    // nas contas atendidas pelo painel (AccountUser#synapseos_intelligence?).
+    path: frontendURL('accounts/:accountId/synapseos/inteligencia'),
+    name: 'synapseos_intelligence',
+    component: () => import('./pages/IntelligencePage.vue'),
+    meta: { permissions: ['synapseos_intelligence'] },
+  },
+  {
     path: frontendURL('accounts/:accountId/synapseos/pipeline'),
     name: 'synapseos_pipeline',
     component: PipelinePage,
@@ -39,6 +47,13 @@ export const routes = [
     name: 'synapseos_agent_metrics',
     component: AgentMetrics,
     meta: { permissions: ['administrator'] },
+  },
+  {
+    // Painel agentic embutido: só a equipe Dexi (AccountUser#synapseos_staff?).
+    path: frontendURL('accounts/:accountId/synapseos/plataforma'),
+    name: 'synapseos_platform',
+    component: () => import('./pages/PlatformPage.vue'),
+    meta: { permissions: ['synapseos_platform'] },
   },
   {
     path: frontendURL('accounts/:accountId/synapseos/design'),
