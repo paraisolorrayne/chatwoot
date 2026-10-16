@@ -78,26 +78,52 @@ const forecastByHorizon = computed(() =>
     detail: item.receita ? money(item.receita) : '',
   }))
 );
+
+// O modelo é texto livre gravado pela IA: o "sem modelo" chega como "Não
+// informado.", "não identificado", "indefinido"..., e o mesmo carro com e sem
+// "Audi" na frente. Junta tudo numa linha só, somando contagem e receita.
+const UNKNOWN_MODEL =
+  /^(?:\(?(?:n\/?d|sem modelo)\)?|null|none|nenhum|indefinido|desconhecido|a definir|-+|nao (?:informado|identificado|definido|especificado|mencionado)|audi(?: \(.*\))?)$/;
+const modelName = raw =>
+  String(raw || '')
+    .trim()
+    .replace(/[.!]+$/, '')
+    .replace(/^audi\s+(?=[aqrs]\d|rs|e-?tron|tt)/i, '');
+const modelKey = raw => {
+  const name = modelName(raw)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  return !name || UNKNOWN_MODEL.test(name) ? null : name;
+};
+const modelRows = (list, revenueField) => {
+  const groups = new Map();
+  (list || []).forEach(item => {
+    const key = modelKey(item.modelo);
+    const group = groups.get(key) || {
+      key: key || '(sem modelo)',
+      label: key ? modelName(item.modelo) : t('SYNAPSEOS.INTELLIGENCE.UNKNOWN'),
+      value: 0,
+      revenue: 0,
+    };
+    group.value += item.count;
+    group.revenue += item[revenueField] || 0;
+    groups.set(key, group);
+  });
+  return [...groups.values()]
+    .sort((a, b) => b.value - a.value)
+    .map(({ revenue, ...row }) => ({
+      ...row,
+      detail: revenue ? money(revenue) : '',
+    }));
+};
+
 const forecastByModel = computed(() =>
-  (forecast.value?.by_modelo || []).map(item => ({
-    key: item.modelo,
-    label: UNKNOWN.includes(item.modelo)
-      ? t('SYNAPSEOS.INTELLIGENCE.UNKNOWN')
-      : item.modelo,
-    value: item.count,
-    detail: item.receita ? money(item.receita) : '',
-  }))
+  modelRows(forecast.value?.by_modelo, 'receita')
 );
 
 const demand = computed(() =>
-  (state.demanda.data?.by_modelo || []).map(item => ({
-    key: item.modelo,
-    label: UNKNOWN.includes(item.modelo)
-      ? t('SYNAPSEOS.INTELLIGENCE.UNKNOWN')
-      : item.modelo,
-    value: item.count,
-    detail: item.receita_potencial ? money(item.receita_potencial) : '',
-  }))
+  modelRows(state.demanda.data?.by_modelo, 'receita_potencial')
 );
 
 const stages = computed(() =>
