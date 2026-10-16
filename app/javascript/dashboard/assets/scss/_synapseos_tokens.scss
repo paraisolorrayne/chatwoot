@@ -79,10 +79,12 @@
   --s-sombra-text: 109 40 217;    // #6D28D9
 
   // ----- CONVERSA ---------------------------------------------------------
-  --s-bubble-in: 238 240 243;     // --color-bubble-in #EEF0F3 (cliente)
+  // Balões em tons próximos do fundo: quem fala é dito pelo lado e pelo rótulo
+  // ("Elisa · IA" / nome do consultor), não por cor forte.
+  --s-bubble-in: 241 243 245;     // #F1F3F5 (cliente)
   --s-bubble-quote: rgb(15 23 42 / 0.06);
-  --s-bubble-human: 31 41 55;     // #1F2937 (consultor)
-  --s-bubble-human-text: 255 255 255;
+  --s-bubble-human: 231 237 244;  // #E7EDF4 (consultor, ardósia clara)
+  --s-bubble-ai: 236 248 250;     // #ECF8FA (IA, ciano bem diluído)
 
   // ----- GRÁFICOS ---------------------------------------------------------
   --s-chart-1: 8 145 178;         // métrica principal
@@ -195,10 +197,10 @@ html[data-theme='dark'] {
   --s-sombra-soft: 36 25 59;
   --s-sombra-text: 196 181 253;
 
-  --s-bubble-in: 36 39 44;        // #24272C
+  --s-bubble-in: 31 34 39;        // #1F2227
   --s-bubble-quote: rgb(255 255 255 / 0.07);
-  --s-bubble-human: 229 231 235;  // #E5E7EB
-  --s-bubble-human-text: 10 10 10;
+  --s-bubble-human: 34 41 51;     // #222933
+  --s-bubble-ai: 18 36 41;        // #122429
 
   --s-chart-1: 34 211 238;
   --s-chart-2: 52 211 153;

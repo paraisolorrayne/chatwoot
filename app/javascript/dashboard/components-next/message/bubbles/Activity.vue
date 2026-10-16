@@ -30,7 +30,7 @@ const isSalesEvent = computed(() => {
   <div
     v-if="isSalesEvent"
     v-tooltip.top="readableTime"
-    class="flex items-center max-w-lg gap-2 px-3 py-2 text-sm font-medium border border-dashed rounded-xl border-s-accent bg-s-brand-soft text-s-primary"
+    class="flex items-center max-w-lg gap-2 px-3 py-2 text-sm font-medium border border-dashed rounded-xl border-s-accent/40 bg-s-bubble-ai text-s-primary"
     data-bubble-name="activity-event"
   >
     <span

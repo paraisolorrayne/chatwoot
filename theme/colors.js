@@ -338,7 +338,7 @@ export const colors = {
     'bubble-in': 'rgb(var(--s-bubble-in) / <alpha-value>)',
     'bubble-quote': 'var(--s-bubble-quote)',
     'bubble-human': 'rgb(var(--s-bubble-human) / <alpha-value>)',
-    'bubble-human-text': 'rgb(var(--s-bubble-human-text) / <alpha-value>)',
+    'bubble-ai': 'rgb(var(--s-bubble-ai) / <alpha-value>)',
     'chart-1': 'rgb(var(--s-chart-1) / <alpha-value>)',
     'chart-2': 'rgb(var(--s-chart-2) / <alpha-value>)',
     'chart-3': 'rgb(var(--s-chart-3) / <alpha-value>)',

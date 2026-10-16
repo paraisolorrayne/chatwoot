@@ -47,25 +47,18 @@ const aiAriaLabel = computed(() =>
   t('CONVERSATION.PRIVATE_NOTE.AI_ARIA', { agent: agentBotName.value })
 );
 
-// CUSTOMIZAÇÃO_SYNAPSEOS — paleta Fykos aplicada aos bubbles.
-// Cliente = bubble-in neutro. Consultor = bubble-human (escuro no tema claro,
-// claro no escuro). IA (bot/template) = brand-soft com borda ciano.
-// Nota privada = warning. Activity = pill central rebaixada.
-// O bubble do consultor inverte o contraste do tema, então citações e código
-// do prose seguem a cor do próprio bubble.
-const HUMAN_BUBBLE_NESTED =
-  '[&_blockquote]:text-current [&_blockquote]:border-s-bubble-human-text/30 [&_code]:text-current [&_code]:bg-s-bubble-human-text/10 [&_pre]:bg-s-bubble-human-text/10';
-
+// CUSTOMIZAÇÃO_SYNAPSEOS — paleta Fykos aplicada aos bubbles, em tons suaves.
+// Cliente = bubble-in neutro. Consultor = bubble-human (ardósia clara).
+// IA (bot/template) = bubble-ai (ciano diluído). Nota privada = warning.
+// Activity = pill central rebaixada.
 const varaintBaseMap = {
-  [MESSAGE_VARIANTS.AGENT]: `bg-s-bubble-human text-s-bubble-human-text ${HUMAN_BUBBLE_NESTED}`,
+  [MESSAGE_VARIANTS.AGENT]: 'bg-s-bubble-human text-s-primary',
   [MESSAGE_VARIANTS.PRIVATE]:
     'bg-s-warning-soft text-s-warning-text border border-s-warning/30 [&_.prosemirror-mention-node]:font-semibold',
   [MESSAGE_VARIANTS.USER]: 'bg-s-bubble-in text-s-primary',
   [MESSAGE_VARIANTS.ACTIVITY]: 'bg-s-subtle text-s-muted text-xs',
-  [MESSAGE_VARIANTS.BOT]:
-    'bg-s-brand-soft text-s-primary border border-s-accent/30',
-  [MESSAGE_VARIANTS.TEMPLATE]:
-    'bg-s-brand-soft text-s-primary border border-s-accent/30',
+  [MESSAGE_VARIANTS.BOT]: 'bg-s-bubble-ai text-s-primary',
+  [MESSAGE_VARIANTS.TEMPLATE]: 'bg-s-bubble-ai text-s-primary',
   [MESSAGE_VARIANTS.EMAIL]: 'w-full',
   [MESSAGE_VARIANTS.UNSUPPORTED]:
     'bg-s-warning-soft/70 border border-dashed border-s-warning-text text-s-warning-text',
@@ -126,17 +119,8 @@ const metaColorClass = computed(() => {
   if (variant.value === MESSAGE_VARIANTS.PRIVATE) {
     return 'text-s-warning-text/80';
   }
-  if (variant.value === MESSAGE_VARIANTS.AGENT) {
-    return 'text-s-bubble-human-text/70';
-  }
   return 'text-s-muted';
 });
-
-const replyPreviewClass = computed(() =>
-  variant.value === MESSAGE_VARIANTS.AGENT
-    ? 'bg-s-bubble-human-text/10'
-    : 'bg-s-bubble-quote'
-);
 
 const shouldShowMeta = computed(
   () =>
@@ -201,8 +185,7 @@ const replyToPreview = computed(() => {
       v-if="inReplyTo"
       role="button"
       tabindex="0"
-      class="p-2 -mx-1 mb-2 rounded-lg cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-s-accent"
-      :class="replyPreviewClass"
+      class="p-2 -mx-1 mb-2 rounded-lg cursor-pointer bg-s-bubble-quote focus-visible:outline focus-visible:outline-2 focus-visible:outline-s-accent"
       @click="scrollToMessage"
       @keydown.enter.space.prevent="scrollToMessage"
     >

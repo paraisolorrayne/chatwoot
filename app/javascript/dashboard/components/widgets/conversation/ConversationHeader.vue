@@ -172,7 +172,7 @@ const takeOver = () => emitter.emit(FOCUS_REPLY_EDITOR);
             class="inline-flex items-center gap-1.5 h-5 px-2 rounded-full text-xs font-medium whitespace-nowrap shrink-0"
             :class="
               mode === 'human'
-                ? 'bg-s-bubble-human text-s-bubble-human-text'
+                ? 'bg-s-bubble-human text-s-primary'
                 : 'bg-s-brand-soft text-s-brand-text'
             "
           >
@@ -187,6 +187,7 @@ const takeOver = () => emitter.emit(FOCUS_REPLY_EDITOR);
             v-if="stageBadge"
             v-bind="stageBadge"
             size="sm"
+            subtle
             class="shrink-0"
           />
           <InboxName v-if="hasMultipleInboxes" :inbox="inbox" class="!mx-0" />
