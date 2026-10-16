@@ -34,7 +34,8 @@ class Api::V1::Accounts::Synapseos::LiveAgentsController < Api::V1::Accounts::Ba
     last_ids.transform_values { |msg_id| messages_by_id[msg_id] }
   end
 
+  # Lista a equipe inteira e as conversas de cada pessoa: só administrador.
   def check_authorization
-    authorize(User, :index?)
+    render_unauthorized('Acesso restrito a administradores') unless Current.account_user&.administrator?
   end
 end
