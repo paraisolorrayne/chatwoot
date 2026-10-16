@@ -40,6 +40,19 @@ dl:not(.reset-base) {
   @apply mb-0;
 }
 
+// CUSTOMIZAÇÃO_SYNAPSEOS: listas dos componentes PrimeVue não levam o marcador acima.
+.p-menu-list,
+.p-tieredmenu-root-list,
+.p-tieredmenu-submenu,
+.p-contextmenu-root-list,
+.p-contextmenu-submenu,
+.p-select-list,
+.p-multiselect-list,
+.p-listbox-list,
+.p-autocomplete-list {
+  @apply list-none;
+}
+
 // Button base
 button {
   font-family: inherit;
