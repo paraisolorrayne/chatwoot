@@ -392,6 +392,7 @@
     "SECURITY": "Security",
     "CAPTAIN_AI": "Captain",
     "CONVERSATION_WORKFLOW": "Conversation Workflow",
+    "KNOWLEDGE_BASE": "Knowledge base",
     "SYNAPSEOS_INTELLIGENCE": "Intelligence"
   },
   "CAPTAIN_SETTINGS": {
