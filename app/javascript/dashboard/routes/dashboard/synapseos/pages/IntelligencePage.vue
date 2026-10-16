@@ -160,7 +160,17 @@ const sends = computed(() => {
   }));
 });
 
-onMounted(() => SECTIONS.forEach(load));
+// CUSTOMIZAÇÃO_SYNAPSEOS — uma seção por vez. Cada request segura uma thread
+// do Puma esperando o painel, e o painel chama o Chatwoot de volta (forecast,
+// KPIs). Em paralelo as 5 seções ocupavam o pool inteiro (RAILS_MAX_THREADS=5):
+// a chamada de volta estourava o timeout, a receita futura vinha zerada (e ia
+// pro cache) e o chat travava pra todo mundo enquanto isso.
+onMounted(() =>
+  SECTIONS.reduce(
+    (prev, section) => prev.then(() => load(section)),
+    Promise.resolve()
+  )
+);
 </script>
 
 <template>
