@@ -9,7 +9,7 @@ import { useEventListener } from '@vueuse/core';
 const props = defineProps({
   isExpanded: { type: Boolean, default: false },
   label: { type: String, required: true },
-  icon: { type: [Object, String], required: true },
+  icon: { type: [Object, String], default: '' },
   children: { type: Array, default: undefined },
   activeChild: { type: Object, default: undefined },
 });
@@ -46,10 +46,10 @@ useEventListener(scrollableContainer, 'scroll', () => {
     v-show="isExpanded"
     :label
     :icon
-    class="my-1"
+    class="ltr:!pl-11 rtl:!pr-11"
   />
   <ul
-    v-if="children.length"
+    v-if="hasAccessibleItems"
     class="m-0 list-none reset-base relative group min-w-0"
   >
     <!-- Each element has h-8, which is 32px, we will show 7 items with one hidden at the end,
@@ -62,7 +62,7 @@ useEventListener(scrollableContainer, 'scroll', () => {
       }"
     >
       <SidebarGroupLeaf
-        v-for="child in children"
+        v-for="child in accessibleItems"
         v-show="isExpanded || activeChild?.name === child.name"
         v-bind="child"
         :key="child.name"
