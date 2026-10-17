@@ -336,7 +336,6 @@
     "CANNED_RESPONSES": "Canned Responses",
     "INTEGRATIONS": "Integrations",
     "WHATSAPP_CONNECTION": "WhatsApp Connection",
-    "MONTHLY_REPORTS": "Monthly Reports",
     "PROFILE_SETTINGS": "Profile Settings",
     "ACCOUNT_SETTINGS": "Account Settings",
     "APPLICATIONS": "Applications",
@@ -393,7 +392,14 @@
     "CAPTAIN_AI": "Captain",
     "CONVERSATION_WORKFLOW": "Conversation Workflow",
     "KNOWLEDGE_BASE": "Knowledge base",
-    "SYNAPSEOS_INTELLIGENCE": "Intelligence"
+    "SYNAPSEOS_INTELLIGENCE": "Intelligence",
+    "SECTION_ANALYTICS": "Analytics",
+    "SECTION_AI": "AI agents",
+    "REPORTS_MONTHLY": "Monthly",
+    "SETTINGS_GROUP_TEAM": "Team",
+    "SETTINGS_GROUP_SERVICE": "Service",
+    "SETTINGS_GROUP_CHANNELS": "Channels & integrations",
+    "SETTINGS_GROUP_SECURITY": "Access & security"
   },
   "CAPTAIN_SETTINGS": {
     "TITLE": "Captain Settings",

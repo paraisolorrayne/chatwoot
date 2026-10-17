@@ -99,15 +99,12 @@ const handleWindowBlur = () => {
   closeActivePopover();
 };
 
-const accessibleItems = computed(() => {
-  if (!hasChildren.value) return [];
-  return props.children.filter(child => {
-    // If a item has no link, it means it's just a subgroup header
-    // So we don't need to check for permissions here, because there's nothing to
-    // access here anyway
-    return child.to && isAllowed(child.to);
-  });
-});
+// CUSTOMIZAÇÃO_SYNAPSEOS: considera os itens dentro dos subgrupos. Sem isso,
+// um grupo só com subgrupos (Configurações) some do menu e o clique no título
+// não acha a primeira página.
+const accessibleItems = computed(() =>
+  navigableChildren.value.filter(child => child.to && isAllowed(child.to))
+);
 
 const hasAccessibleChildren = computed(() => {
   return accessibleItems.value.length > 0;

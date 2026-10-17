@@ -7,6 +7,7 @@ import { useMapGetter } from 'dashboard/composables/store';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import { useAdmin } from 'dashboard/composables/useAdmin';
+import { usePolicy } from 'dashboard/composables/usePolicy';
 import { getUserPermissions } from 'dashboard/helper/permissionsHelper';
 import { useRouter } from 'vue-router';
 import { useSidebarKeyboardShortcuts } from './useSidebarKeyboardShortcuts';
@@ -18,6 +19,7 @@ import { BUS_EVENTS } from 'shared/constants/busEvents';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import SidebarGroup from './SidebarGroup.vue';
+import SidebarGroupSeparator from './SidebarGroupSeparator.vue';
 import SidebarProfileMenu from './SidebarProfileMenu.vue';
 import SidebarChangelogCard from './SidebarChangelogCard.vue';
 import SidebarChangelogButton from './SidebarChangelogButton.vue';
@@ -211,319 +213,324 @@ const onComposeClose = () => {
   emitter.emit(BUS_EVENTS.NEW_CONVERSATION_MODAL, false);
 };
 
-// CUSTOMIZAÇÃO_SYNAPSEOS: reports de Label, Inbox e Team foram removidos do
-// nav (escopo reduzido pra Agent + Conversation overview apenas). As rotas
-// continuam registradas caso haja links diretos.
-const newReportRoutes = () => [
-  {
-    name: 'Reports Agent',
-    label: t('SIDEBAR.REPORTS_AGENT'),
-    to: accountScopedRoute('agent_reports_index'),
-    activeOn: ['agent_reports_show'],
-  },
-];
+// CUSTOMIZAÇÃO_SYNAPSEOS: o menu é dividido em seções (trabalho do dia,
+// Análises, Agentes de IA, administração). Cada seção só aparece se o usuário
+// enxerga pelo menos um item dela, para não sobrar título solto.
+const { shouldShow } = usePolicy();
+const canSee = item => {
+  if (item.children) return item.children.some(canSee);
+  if (!item.to) return false;
+  const { meta = {} } = router.resolve(item.to);
+  return shouldShow(meta.featureFlag, meta.permissions, meta.installationTypes);
+};
 
-const reportRoutes = computed(() => newReportRoutes());
-
-const menuItems = computed(() => {
-  return [
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Caixa de Entrada passa a apontar direto pra
-    // lista de todas as conversas (antes era a tela de notificações pessoais
-    // inbox_view). Consolida 'Conversas > Todas as conversas' aqui; o item
-    // 'Conversas' foi removido da sidebar. A rota inbox_view continua
-    // existindo via rotas caso algum link externo aponte pra ela.
+const menuSections = computed(() =>
+  [
     {
-      name: 'Inbox',
-      label: t('SIDEBAR.INBOX'),
-      icon: 'i-lucide-inbox',
-      to: accountScopedRoute('home'),
-      activeOn: [
-        'home',
-        'inbox_conversation',
-        'conversation_through_mentions',
-        'conversation_through_participating',
-        'conversation_through_unattended',
-        'conversations_through_folders',
-        'conversations_through_team',
-        'conversation_through_inbox',
-        'conversations_through_label',
-      ],
-      // CUSTOMIZAÇÃO_SYNAPSEOS: badge de não-lidos removido (cliente não usa o
-      // contador; o "1" fixo incomodava). Sem getterKeys.count = sem badge.
-    },
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Synapse OS — itens top-level da sidebar
-    {
-      name: 'SynapseOS Dashboard',
-      label: t('SIDEBAR.SYNAPSEOS_DASHBOARD'),
-      icon: 'i-lucide-layout-dashboard',
-      to: accountScopedRoute('synapseos_dashboard'),
-      activeOn: ['synapseos_dashboard'],
-    },
-    {
-      name: 'SynapseOS Intelligence',
-      label: t('SIDEBAR.SYNAPSEOS_INTELLIGENCE'),
-      icon: 'i-lucide-sparkles',
-      to: accountScopedRoute('synapseos_intelligence'),
-      activeOn: ['synapseos_intelligence'],
-    },
-    {
-      name: 'SynapseOS Live Agents',
-      label: t('SIDEBAR.SYNAPSEOS_LIVE_AGENTS'),
-      icon: 'i-lucide-users',
-      to: accountScopedRoute('synapseos_live_agents'),
-      activeOn: ['synapseos_live_agents'],
-    },
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Esquadrão / Métricas só aparece quando há
-    // pelo menos um AgentBot cadastrado (squadron_role ou nome legado).
-    // Sem agentes a página é puro empty state — esconde do nav até cadastrar.
-    ...(hasSynapseosAgents.value
-      ? [
-          {
-            name: 'SynapseOS Agent Metrics',
-            label: t('SIDEBAR.SYNAPSEOS_AGENT_METRICS'),
-            icon: 'i-lucide-bot',
-            to: accountScopedRoute('synapseos_agent_metrics'),
-            activeOn: ['synapseos_agent_metrics'],
-          },
-        ]
-      : []),
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Tempo Real removido — redundante com Live Agents
-    // (mesmas métricas). A rota e a página foram apagadas.
-    {
-      name: 'SynapseOS Pipeline',
-      label: t('SIDEBAR.SYNAPSEOS_PIPELINE'),
-      icon: 'i-lucide-git-branch',
-      to: accountScopedRoute('synapseos_pipeline'),
-      activeOn: ['synapseos_pipeline'],
-    },
-    // CUSTOMIZAÇÃO_SYNAPSEOS: item 'Conversas' removido. Todas as sub-rotas
-    // (Mentions, Participating, Unattended, Folders, Teams, Channels, Labels)
-    // continuam registradas e acessíveis por URL direta / filtros dentro da
-    // nova Caixa de Entrada, mas não aparecem como atalhos no nav.
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Captain (IA do Chatwoot) removido do nav —
-    // o Synapse OS usa seu próprio esquadrão de agentes (AgentBot +
-    // squadron_role). Rotas /captain_assistants/* permanecem caso algum
-    // link externo referencie.
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Contatos + Companies removidos do nav.
-    // Contatos continuam acessíveis via painel lateral da conversa e
-    // rotas /contacts /companies por URL direta.
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Relatórios — mantém apenas visão geral
-    // (Conversation) e performance por agente. CSAT, SLA, Robôs, Time,
-    // Caixa de Entrada e Etiquetas foram removidos do nav (escopo enxuto
-    // pro uso atual; rotas /reports/* permanecem via URL direta).
-    {
-      name: 'Reports',
-      label: t('SIDEBAR.REPORTS'),
-      icon: 'i-lucide-chart-spline',
-      children: [
+      key: 'work',
+      items: [
+        // CUSTOMIZAÇÃO_SYNAPSEOS: Caixa de Entrada aponta direto pra lista de
+        // todas as conversas (antes era a tela de notificações pessoais
+        // inbox_view). O item 'Conversas' foi removido da sidebar; as sub-rotas
+        // (Mentions, Participating, Unattended, Folders, Teams, Channels,
+        // Labels) continuam acessíveis por URL e pelos filtros da lista.
+        // Sem badge de não-lidos: o cliente não usa o contador.
         {
-          name: 'Report Conversation',
-          label: t('SIDEBAR.REPORTS_CONVERSATION'),
-          to: accountScopedRoute('conversation_reports'),
-        },
-        ...reportRoutes.value,
-      ],
-    },
-    // CUSTOMIZAÇÃO_SYNAPSEOS: Campaigns e Help Center (Portals) escondidos da sidebar.
-    // As rotas permanecem registradas para não quebrar automações/integrações existentes.
-    {
-      name: 'SynapseOS Support',
-      label: t('SYNAPSEOS.SUPPORT.TITLE'),
-      icon: 'i-lucide-life-buoy',
-      to: accountScopedRoute('synapseos_support'),
-      activeOn: ['synapseos_support'],
-    },
-    {
-      name: 'Settings',
-      label: t('SIDEBAR.SETTINGS'),
-      icon: 'i-lucide-bolt',
-      children: [
-        {
-          name: 'Settings Account Settings',
-          label: t('SIDEBAR.ACCOUNT_SETTINGS'),
-          icon: 'i-lucide-briefcase',
-          to: accountScopedRoute('general_settings_index'),
-        },
-        // {
-        //   name: 'Settings Captain',
-        //   label: t('SIDEBAR.CAPTAIN_AI'),
-        //   icon: 'i-woot-captain',
-        //   to: accountScopedRoute('captain_settings_index'),
-        // },
-        {
-          name: 'Settings Agents',
-          label: t('SIDEBAR.AGENTS'),
-          icon: 'i-lucide-square-user',
-          to: accountScopedRoute('agent_list'),
-        },
-        {
-          name: 'Settings Teams',
-          label: t('SIDEBAR.TEAMS'),
-          icon: 'i-lucide-users',
+          name: 'Inbox',
+          label: t('SIDEBAR.INBOX'),
+          icon: 'i-lucide-inbox',
+          to: accountScopedRoute('home'),
           activeOn: [
-            'settings_teams_list',
-            'settings_teams_new',
-            'settings_teams_finish',
-            'settings_teams_add_agents',
-            'settings_teams_show',
-            'settings_teams_edit',
-            'settings_teams_edit_members',
-            'settings_teams_edit_finish',
+            'home',
+            'inbox_conversation',
+            'conversation_through_mentions',
+            'conversation_through_participating',
+            'conversation_through_unattended',
+            'conversations_through_folders',
+            'conversations_through_team',
+            'conversation_through_inbox',
+            'conversations_through_label',
           ],
-          to: accountScopedRoute('settings_teams_list'),
-        },
-        ...(hasAdvancedAssignment.value
-          ? [
-              {
-                name: 'Settings Agent Assignment',
-                label: t('SIDEBAR.AGENT_ASSIGNMENT'),
-                icon: 'i-lucide-user-cog',
-                activeOn: [
-                  'assignment_policy_index',
-                  'agent_assignment_policy_index',
-                  'agent_assignment_policy_create',
-                  'agent_assignment_policy_edit',
-                  'agent_capacity_policy_index',
-                  'agent_capacity_policy_create',
-                  'agent_capacity_policy_edit',
-                ],
-                to: accountScopedRoute('assignment_policy_index'),
-              },
-            ]
-          : []),
-        // CUSTOMIZAÇÃO_SYNAPSEOS: 4 itens técnicos visíveis SÓ pra administrators.
-        // Agents/operadores comuns têm UI enxuta (labels, automation, macros,
-        // canned responses). Admins têm tudo + setup técnico.
-        ...(isAdmin.value
-          ? [
-              {
-                name: 'Settings Inboxes',
-                label: t('SIDEBAR.INBOXES'),
-                icon: 'i-lucide-inbox',
-                activeOn: [
-                  'settings_inbox_list',
-                  'settings_inbox_show',
-                  'settings_inbox_new',
-                  'settings_inbox_finish',
-                  'settings_inboxes_page_channel',
-                  'settings_inboxes_add_agents',
-                ],
-                to: accountScopedRoute('settings_inbox_list'),
-              },
-            ]
-          : []),
-        {
-          name: 'Settings Labels',
-          label: t('SIDEBAR.LABELS'),
-          icon: 'i-lucide-tags',
-          to: accountScopedRoute('labels_list'),
-        },
-        ...(isAdmin.value
-          ? [
-              {
-                name: 'Settings Custom Attributes',
-                label: t('SIDEBAR.CUSTOM_ATTRIBUTES'),
-                icon: 'i-lucide-code',
-                to: accountScopedRoute('attributes_list'),
-              },
-            ]
-          : []),
-        {
-          name: 'Settings Automation',
-          label: t('SIDEBAR.AUTOMATION'),
-          icon: 'i-lucide-repeat',
-          to: accountScopedRoute('automation_list'),
-        },
-        ...(isAdmin.value
-          ? [
-              {
-                name: 'Settings Agent Bots',
-                label: t('SIDEBAR.AGENT_BOTS'),
-                icon: 'i-lucide-bot',
-                to: accountScopedRoute('agent_bots'),
-              },
-            ]
-          : []),
-        {
-          name: 'Settings Macros',
-          label: t('SIDEBAR.MACROS'),
-          icon: 'i-lucide-toy-brick',
-          to: accountScopedRoute('macros_wrapper'),
         },
         {
-          name: 'Settings Canned Responses',
-          label: t('SIDEBAR.CANNED_RESPONSES'),
-          icon: 'i-lucide-message-square-quote',
-          to: accountScopedRoute('canned_list'),
-        },
-        ...(isAdmin.value
-          ? [
-              {
-                name: 'Settings Integrations',
-                label: t('SIDEBAR.INTEGRATIONS'),
-                icon: 'i-lucide-blocks',
-                to: accountScopedRoute('settings_applications'),
-              },
-              {
-                name: 'Settings WhatsApp Connection',
-                label: t('SIDEBAR.WHATSAPP_CONNECTION'),
-                icon: 'i-lucide-plug-zap',
-                to: accountScopedRoute('whatsapp_connection_index'),
-              },
-              {
-                name: 'Settings Monthly Reports',
-                label: t('SIDEBAR.MONTHLY_REPORTS'),
-                icon: 'i-lucide-file-bar-chart',
-                to: accountScopedRoute('monthly_reports_index'),
-              },
-              {
-                name: 'Settings Knowledge Base',
-                label: t('SIDEBAR.KNOWLEDGE_BASE'),
-                icon: 'i-lucide-book-open',
-                to: accountScopedRoute('knowledge_base_index'),
-              },
-            ]
-          : []),
-        {
-          name: 'Settings Audit Logs',
-          label: t('SIDEBAR.AUDIT_LOGS'),
-          icon: 'i-lucide-briefcase',
-          to: accountScopedRoute('auditlogs_list'),
+          name: 'SynapseOS Pipeline',
+          label: t('SIDEBAR.SYNAPSEOS_PIPELINE'),
+          icon: 'i-lucide-square-kanban',
+          to: accountScopedRoute('synapseos_pipeline'),
+          activeOn: ['synapseos_pipeline'],
         },
         {
-          name: 'Settings Custom Roles',
-          label: t('SIDEBAR.CUSTOM_ROLES'),
-          icon: 'i-lucide-shield-plus',
-          to: accountScopedRoute('custom_roles_list'),
-        },
-        {
-          name: 'Settings Sla',
-          label: t('SIDEBAR.SLA'),
-          icon: 'i-lucide-clock-alert',
-          to: accountScopedRoute('sla_list'),
-        },
-        {
-          name: 'Conversation Workflow',
-          label: t('SIDEBAR.CONVERSATION_WORKFLOW'),
-          icon: 'i-lucide-workflow',
-          to: accountScopedRoute('conversation_workflow_index'),
-        },
-        {
-          name: 'Settings Security',
-          label: t('SIDEBAR.SECURITY'),
-          icon: 'i-lucide-shield',
-          to: accountScopedRoute('security_settings_index'),
-        },
-        {
-          name: 'Settings Billing',
-          label: t('SIDEBAR.BILLING'),
-          icon: 'i-lucide-credit-card',
-          to: accountScopedRoute('billing_settings_index'),
+          name: 'SynapseOS Live Agents',
+          label: t('SIDEBAR.SYNAPSEOS_LIVE_AGENTS'),
+          icon: 'i-lucide-users',
+          to: accountScopedRoute('synapseos_live_agents'),
+          activeOn: ['synapseos_live_agents'],
         },
       ],
     },
-  ];
-});
+    {
+      key: 'analytics',
+      label: t('SIDEBAR.SECTION_ANALYTICS'),
+      items: [
+        {
+          name: 'SynapseOS Dashboard',
+          label: t('SIDEBAR.SYNAPSEOS_DASHBOARD'),
+          icon: 'i-lucide-layout-dashboard',
+          to: accountScopedRoute('synapseos_dashboard'),
+          activeOn: ['synapseos_dashboard'],
+        },
+        {
+          name: 'SynapseOS Intelligence',
+          label: t('SIDEBAR.SYNAPSEOS_INTELLIGENCE'),
+          icon: 'i-lucide-sparkles',
+          to: accountScopedRoute('synapseos_intelligence'),
+          activeOn: ['synapseos_intelligence'],
+        },
+        // CUSTOMIZAÇÃO_SYNAPSEOS: Relatórios mantém visão geral (Conversation),
+        // performance por agente e o relatório mensal da IA (antes escondido
+        // em Configurações). CSAT, SLA, Robôs, Time, Caixa de Entrada e
+        // Etiquetas saíram do nav; as rotas /reports/* seguem por URL.
+        {
+          name: 'Reports',
+          label: t('SIDEBAR.REPORTS'),
+          icon: 'i-lucide-chart-spline',
+          children: [
+            {
+              name: 'Report Conversation',
+              label: t('SIDEBAR.REPORTS_CONVERSATION'),
+              to: accountScopedRoute('conversation_reports'),
+            },
+            {
+              name: 'Reports Agent',
+              label: t('SIDEBAR.REPORTS_AGENT'),
+              to: accountScopedRoute('agent_reports_index'),
+              activeOn: ['agent_reports_show'],
+            },
+            {
+              name: 'Reports Monthly',
+              label: t('SIDEBAR.REPORTS_MONTHLY'),
+              to: accountScopedRoute('monthly_reports_index'),
+            },
+          ],
+        },
+      ],
+    },
+    {
+      key: 'ai',
+      label: t('SIDEBAR.SECTION_AI'),
+      items: [
+        // CUSTOMIZAÇÃO_SYNAPSEOS: o que a IA sabe (modelos, versões, preços)
+        // fica à vista de quem administra, não no fim de Configurações.
+        {
+          name: 'Knowledge Base',
+          label: t('SIDEBAR.KNOWLEDGE_BASE'),
+          icon: 'i-lucide-book-open',
+          to: accountScopedRoute('knowledge_base_index'),
+        },
+        // CUSTOMIZAÇÃO_SYNAPSEOS: Métricas de Agentes só aparece quando há
+        // pelo menos um AgentBot cadastrado (squadron_role ou nome legado).
+        ...(hasSynapseosAgents.value
+          ? [
+              {
+                name: 'SynapseOS Agent Metrics',
+                label: t('SIDEBAR.SYNAPSEOS_AGENT_METRICS'),
+                icon: 'i-lucide-bot',
+                to: accountScopedRoute('synapseos_agent_metrics'),
+                activeOn: ['synapseos_agent_metrics'],
+              },
+            ]
+          : []),
+      ],
+    },
+    // CUSTOMIZAÇÃO_SYNAPSEOS: fora do nav ficam Conversas, Captain (o Synapse
+    // OS tem o próprio esquadrão de AgentBots), Contatos/Companies (acessíveis
+    // pelo painel da conversa), Campaigns, Help Center e Tempo Real
+    // (redundante com Equipe ao vivo). As rotas seguem registradas.
+    {
+      key: 'admin',
+      items: [
+        {
+          name: 'SynapseOS Support',
+          label: t('SYNAPSEOS.SUPPORT.TITLE'),
+          icon: 'i-lucide-life-buoy',
+          to: accountScopedRoute('synapseos_support'),
+          activeOn: ['synapseos_support'],
+        },
+        // CUSTOMIZAÇÃO_SYNAPSEOS: Configurações agrupada por assunto e sem
+        // ícone por item (os ícones repetiam os do nível de cima). Itens
+        // técnicos (Caixas de Entrada, Atributos, Robôs, Integrações, Conexão
+        // WhatsApp) são só de administrator: a rota já exige a permissão.
+        {
+          name: 'Settings',
+          label: t('SIDEBAR.SETTINGS'),
+          icon: 'i-lucide-settings',
+          children: [
+            {
+              name: 'Settings Account Settings',
+              label: t('SIDEBAR.ACCOUNT_SETTINGS'),
+              to: accountScopedRoute('general_settings_index'),
+            },
+            {
+              name: 'Settings Billing',
+              label: t('SIDEBAR.BILLING'),
+              to: accountScopedRoute('billing_settings_index'),
+            },
+            {
+              name: 'Settings Group Team',
+              label: t('SIDEBAR.SETTINGS_GROUP_TEAM'),
+              children: [
+                {
+                  name: 'Settings Agents',
+                  label: t('SIDEBAR.AGENTS'),
+                  to: accountScopedRoute('agent_list'),
+                },
+                {
+                  name: 'Settings Teams',
+                  label: t('SIDEBAR.TEAMS'),
+                  activeOn: [
+                    'settings_teams_list',
+                    'settings_teams_new',
+                    'settings_teams_finish',
+                    'settings_teams_add_agents',
+                    'settings_teams_show',
+                    'settings_teams_edit',
+                    'settings_teams_edit_members',
+                    'settings_teams_edit_finish',
+                  ],
+                  to: accountScopedRoute('settings_teams_list'),
+                },
+                ...(hasAdvancedAssignment.value
+                  ? [
+                      {
+                        name: 'Settings Agent Assignment',
+                        label: t('SIDEBAR.AGENT_ASSIGNMENT'),
+                        activeOn: [
+                          'assignment_policy_index',
+                          'agent_assignment_policy_index',
+                          'agent_assignment_policy_create',
+                          'agent_assignment_policy_edit',
+                          'agent_capacity_policy_index',
+                          'agent_capacity_policy_create',
+                          'agent_capacity_policy_edit',
+                        ],
+                        to: accountScopedRoute('assignment_policy_index'),
+                      },
+                    ]
+                  : []),
+              ],
+            },
+            {
+              name: 'Settings Group Service',
+              label: t('SIDEBAR.SETTINGS_GROUP_SERVICE'),
+              children: [
+                {
+                  name: 'Settings Labels',
+                  label: t('SIDEBAR.LABELS'),
+                  to: accountScopedRoute('labels_list'),
+                },
+                {
+                  name: 'Settings Canned Responses',
+                  label: t('SIDEBAR.CANNED_RESPONSES'),
+                  to: accountScopedRoute('canned_list'),
+                },
+                {
+                  name: 'Settings Macros',
+                  label: t('SIDEBAR.MACROS'),
+                  to: accountScopedRoute('macros_wrapper'),
+                },
+                {
+                  name: 'Settings Automation',
+                  label: t('SIDEBAR.AUTOMATION'),
+                  to: accountScopedRoute('automation_list'),
+                },
+                {
+                  name: 'Conversation Workflow',
+                  label: t('SIDEBAR.CONVERSATION_WORKFLOW'),
+                  to: accountScopedRoute('conversation_workflow_index'),
+                },
+                {
+                  name: 'Settings Sla',
+                  label: t('SIDEBAR.SLA'),
+                  to: accountScopedRoute('sla_list'),
+                },
+                ...(isAdmin.value
+                  ? [
+                      {
+                        name: 'Settings Custom Attributes',
+                        label: t('SIDEBAR.CUSTOM_ATTRIBUTES'),
+                        to: accountScopedRoute('attributes_list'),
+                      },
+                    ]
+                  : []),
+              ],
+            },
+            ...(isAdmin.value
+              ? [
+                  {
+                    name: 'Settings Group Channels',
+                    label: t('SIDEBAR.SETTINGS_GROUP_CHANNELS'),
+                    children: [
+                      {
+                        name: 'Settings Inboxes',
+                        label: t('SIDEBAR.INBOXES'),
+                        activeOn: [
+                          'settings_inbox_list',
+                          'settings_inbox_show',
+                          'settings_inbox_new',
+                          'settings_inbox_finish',
+                          'settings_inboxes_page_channel',
+                          'settings_inboxes_add_agents',
+                        ],
+                        to: accountScopedRoute('settings_inbox_list'),
+                      },
+                      {
+                        name: 'Settings WhatsApp Connection',
+                        label: t('SIDEBAR.WHATSAPP_CONNECTION'),
+                        to: accountScopedRoute('whatsapp_connection_index'),
+                      },
+                      {
+                        name: 'Settings Integrations',
+                        label: t('SIDEBAR.INTEGRATIONS'),
+                        to: accountScopedRoute('settings_applications'),
+                      },
+                      {
+                        name: 'Settings Agent Bots',
+                        label: t('SIDEBAR.AGENT_BOTS'),
+                        to: accountScopedRoute('agent_bots'),
+                      },
+                    ],
+                  },
+                ]
+              : []),
+            {
+              name: 'Settings Group Security',
+              label: t('SIDEBAR.SETTINGS_GROUP_SECURITY'),
+              children: [
+                {
+                  name: 'Settings Security',
+                  label: t('SIDEBAR.SECURITY'),
+                  to: accountScopedRoute('security_settings_index'),
+                },
+                {
+                  name: 'Settings Custom Roles',
+                  label: t('SIDEBAR.CUSTOM_ROLES'),
+                  to: accountScopedRoute('custom_roles_list'),
+                },
+                {
+                  name: 'Settings Audit Logs',
+                  label: t('SIDEBAR.AUDIT_LOGS'),
+                  to: accountScopedRoute('auditlogs_list'),
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ]
+    .map(section => ({ ...section, items: section.items.filter(canSee) }))
+    .filter(section => section.items.length)
+);
 </script>
 
 <template>
@@ -626,11 +633,24 @@ const menuItems = computed(() => {
         class="flex flex-col gap-0.5 m-0 list-none min-w-0"
         :class="{ 'items-center': isEffectivelyCollapsed }"
       >
-        <SidebarGroup
-          v-for="item in menuItems"
-          :key="item.name"
-          v-bind="item"
-        />
+        <template v-for="(section, index) in menuSections" :key="section.key">
+          <li v-if="index" role="presentation" class="list-none">
+            <SidebarGroupSeparator
+              v-if="section.label && !isEffectivelyCollapsed"
+              :label="section.label"
+            />
+            <div
+              v-else
+              class="h-px my-2 bg-s-border"
+              :class="isEffectivelyCollapsed ? 'w-6' : 'mx-3'"
+            />
+          </li>
+          <SidebarGroup
+            v-for="item in section.items"
+            :key="item.name"
+            v-bind="item"
+          />
+        </template>
       </ul>
     </nav>
     <section

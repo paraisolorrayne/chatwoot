@@ -25,7 +25,7 @@ const shouldRenderComponent = computed(() => {
     :permissions="resolvePermissions(to)"
     :feature-flag="resolveFeatureFlag(to)"
     as="li"
-    class="py-0.5 ltr:pl-11 rtl:pr-11 relative text-s-on-dark-muted min-w-0"
+    class="py-0.5 ltr:pl-8 rtl:pr-8 relative text-s-on-dark-muted min-w-0"
   >
     <component
       :is="to ? 'router-link' : 'div'"

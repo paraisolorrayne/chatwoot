@@ -19,7 +19,7 @@ defineProps({
   >
     <Icon v-if="icon" :icon="icon" class="size-3.5 text-s-muted" />
     <span
-      class="text-[10px] font-semibold uppercase tracking-[0.08em] flex-grow text-s-muted"
+      class="text-[11px] font-semibold uppercase tracking-[0.08em] flex-grow text-s-muted"
     >
       {{ label }}
     </span>
